@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="style.css">
+
+    <title>EVE Online Manufacturing Calculator</title>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>EVE Online Manufacturing Calculator</h1>
+            <div class="api-status" id="api-status">API Status: Checking...</div>
+        </header>
+        
+        <div class="error" id="error-message"></div>
+        
+        <div class="settings">
+            <label for="facility">Manufacturing Facility:</label>
+            <select id="facility">
+                <option value="station">Station</option>
+                <option value="engineering_complex" selected>Engineering Complex</option>
+                <option value="sotiyo">Sotiyo</option>
+            </select>
+            
+            <label for="me">Material Efficiency:</label>
+            <input type="number" id="me" min="0" max="10" value="0">
+            
+            <label for="te">Time Efficiency:</label>
+            <input type="number" id="te" min="0" max="20" value="0">
+            
+            <label for="runs">Number of Runs:</label>
+            <input type="number" id="runs" min="1" value="1">
+            
+            <label for="tax">Facility Tax (%):</label>
+            <input type="number" id="tax" min="0" step="0.1" value="2.5">
+            
+            <label for="market">Market:</label>
+            <select id="market">
+                <option value="10000002">Jita (The Forge)</option>
+                <option value="10000043">Amarr (Domain)</option>
+                <option value="10000032">Dodixie (Sinq Laison)</option>
+                <option value="10000042">Hek (Metropolis)</option>
+                <option value="10000030">Rens (Heimatar)</option>
+            </select>
+        </div>
+        
+        <div class="search-box">
+            <input type="text" id="item-search" placeholder="Search for an item to manufacture...">
+            <button onclick="searchItems()">Search</button>
+        </div>
+        
+        <div class="search-results" id="search-results"></div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Loading data from EVE Online API...</p>
+        </div>
+        
+        <div class="calculator">
+            <div class="panel">
+                <div class="blueprint-info" id="blueprint-info">
+                    <h2>Blueprint Information</h2>
+                    <p>No blueprint selected. Search for an item above.</p>
+                </div>
+                
+                <div class="material-list">
+                    <h2>Required Materials</h2>
+                    <table id="materials-table">
+                        <thead>
+                            <tr>
+                                <th>Material</th>
+                                <th>Quantity</th>
+                                <th>Price (ISK)</th>
+                                <th>Total (ISK)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="materials-body">
+                            <tr>
+                                <td colspan="4">No materials to display</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <div class="cost-breakdown">
+                    <h2>Cost Breakdown</h2>
+                    <table id="cost-table">
+                        <tr>
+                            <td>Base Material Cost:</td>
+                            <td id="base-cost">0 ISK</td>
+                        </tr>
+                        <tr>
+                            <td>Manufacturing Tax:</td>
+                            <td id="tax-cost">0 ISK</td>
+                        </tr>
+                        <tr>
+                            <td>Installation Fee:</td>
+                            <td id="install-cost">0 ISK</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Total Manufacturing Cost:</strong></td>
+                            <td id="total-cost"><strong>0 ISK</strong></td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="profit-analysis">
+                    <h2>Profit Analysis</h2>
+                    <table id="profit-table">
+                        <tr>
+                            <td>Market Price (Unit):</td>
+                            <td id="market-price">0 ISK</td>
+                        </tr>
+                        <tr>
+                            <td>Total Market Value:</td>
+                            <td id="total-value">0 ISK</td>
+                        </tr>
+                        <tr>
+                            <td>Manufacturing Cost (Unit):</td>
+                            <td id="unit-cost">0 ISK</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Profit (Unit):</strong></td>
+                            <td id="unit-profit"><strong>0 ISK</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Total Profit:</strong></td>
+                            <td id="total-profit"><strong>0 ISK</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Profit Margin:</strong></td>
+                            <td id="profit-margin"><strong>0%</strong></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Cache for API responses
+        const apiCache = {
+            search: {},
+            blueprints: {},
+            prices: {},
+            names: {}
+        };
+        
+        // ESI endpoints
+        const ESI_BASE = 'https://esi.evetech.net';
+        const ESI_SEARCH = '/v2/search/';
+        const ESI_UNIVERSE_TYPES = '/v3/universe/types/';
+        const ESI_MARKETS_PRICES = '/v1/markets/prices/';
+        const ESI_UNIVERSE_NAMES = '/v3/universe/names/';
+        
+        // EVEMarketer endpoint for regional market prices
+        const EVE_MARKETER_BASE = 'https://api.evemarketer.com/ec/marketstat/json';
+        
+        // Facility bonus mapping
+        const facilityBonuses = {
+            'station': 0,
+            'engineering_complex': 0.01, // 1% material reduction
+            'sotiyo': 0.015 // 1.5% material reduction
+        };
+        
+        // Error handling helper
+        function showError(message) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            document.getElementById('loading').style.display = 'none';
+            setTimeout(() => {
+                errorElement.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Format ISK values
+        function formatISK(isk) {
+            return new Intl.NumberFormat('en-US').format(Math.round(isk * 100) / 100) + " ISK";
+        }
+        
+        // Check API status on load
+        async function checkAPIStatus() {
+            try {
+                const response = await fetch(`${ESI_BASE}/v1/status/`);
+                const data = await response.json();
+                if (data.players) {
+                    document.getElementById('api-status').textContent = `API Status: Online (${data.players} players)`;
+                } else {
+                    document.getElementById('api-status').textContent = 'API Status: Online';
+                }
+            } catch (error) {
+                document.getElementById('api-status').textContent = 'API Status: Error - ' + error.message;
+            }
+        }
+        
+        // Search for items using ESI search endpoint
+        async function searchItems() {
+            const searchTerm = document.getElementById('item-search').value.trim();
+            if (searchTerm.length < 3) {
+                showError('Please enter at least 3 characters to search');
+                return;
+            }
+            
+            document.getElementById('loading').style.display = 'block';
+            const resultsDiv = document.getElementById('search-results');
+            resultsDiv.style.display = 'none';
+            
+            try {
+                // Check cache first
+                if (apiCache.search[searchTerm]) {
+                    displaySearchResults(apiCache.search[searchTerm], searchTerm);
+                    return;
+                }
+                
+                // ESI search call
+                const searchParams = new URLSearchParams({
+                    categories: 'inventory_type',
+                    datasource: 'tranquility',
+                    language: 'en-us',
+                    search: searchTerm,
+                    strict: 'false'
+                });
+                
+                const response = await fetch(`${ESI_BASE}${ESI_SEARCH}?${searchParams}`);
+                
+                if (!response.ok) {
+                    throw new Error(`ESI API error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (!data.inventory_type || data.inventory_type.length === 0) {
+                    resultsDiv.innerHTML = '<div>No results found</div>';
+                    resultsDiv.style.display = 'block';
+                    document.getElementById('loading').style.display = 'none';
+                    return;
+                }
+                
+                // Get names for the type IDs
+                const typeIds = data.inventory_type.slice(0, 50); // Limit to 50 results
+                const namesResponse = await fetch(`${ESI_BASE}${ESI_UNIVERSE_NAMES}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(typeIds)
+                });
+                
+                if (!namesResponse.ok) {
+                    throw new Error(`ESI API error: ${namesResponse.status}`);
+                }
+                
+                const namesData = await namesResponse.json();
+                
+                // Filter for blueprints
+                const blueprints = namesData.filter(item => 
+                    item.name.toLowerCase().includes('blueprint') || 
+                    item.name.toLowerCase().includes('bpc') ||
+                    item.name.toLowerCase().includes('bpo')
+                );
+                
+                // Save to cache
+                apiCache.search[searchTerm] = blueprints;
+                
+                // Display results
+                displaySearchResults(blueprints, searchTerm);
+                
+            } catch (error) {
+                showError(`Error searching for items: ${error.message}`);
+            }
+        }
+        
+        // Display search results
+        function displaySearchResults(results, searchTerm) {
+            const resultsDiv = document.getElementById('search-results');
+            resultsDiv.innerHTML = '';
+            
+            if (results.length > 0) {
+                results.forEach(item => {
+                    const div = document.createElement('div');
+                    div.textContent = item.name;
+                    div.addEventListener('click', () => selectBlueprint(item.id));
+                    resultsDiv.appendChild(div);
+                });
+            } else {
+                resultsDiv.innerHTML = `<div>No blueprint found for "${searchTerm}"</div>`;
+            }
+            
+            resultsDiv.style.display = 'block';
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        // Get detailed item information
+        async function getItemDetails(typeId) {
+            if (apiCache.blueprints[typeId]) {
+                return apiCache.blueprints[typeId];
+            }
+            
+            const response = await fetch(`${ESI_BASE}${ESI_UNIVERSE_TYPES}${typeId}/?datasource=tranquility&language=en-us`);
+            
+            if (!response.ok) {
+                throw new Error(`ESI API error: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            apiCache.blueprints[typeId] = data;
+            return data;
+        }
+        
+        // Get market price data
+        async function getMarketPrices(typeIds) {
+            const regionId = document.getElementById('market').value;
+            const typeParam = typeIds.join('&typeid=');
+            
+            // Using EVE Marketer for more accurate regional prices
+            const url = `${EVE_MARKETER_BASE}?regionlimit=${regionId}&typeid=${typeParam}`;
+            
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`Market API error: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // Format the response into a more usable structure
+            const prices = {};
+            data.forEach(item => {
+                prices[item.buy.forQuery.types[0]] = {
+                    buy: item.buy.max,
+                    sell: item.sell.min
+                };
+            });
+            
+            return prices;
+        }
+        
+        // Fall back to ESI prices if EVE Marketer fails
+        async function getESIPrices() {
+            if (apiCache.prices['esi']) {
+                return apiCache.prices['esi'];
+            }
+            
+            const response = await fetch(`${ESI_BASE}${ESI_MARKETS_PRICES}?datasource=tranquility`);
+            
+            if (!response.ok) {
+                throw new Error(`ESI API error: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // Format into a more usable structure
+            const prices = {};
+            data.forEach(item => {
+                prices[item.type_id] = {
+                    buy: item.average_price || 0,
+                    sell: item.adjusted_price || 0
+                };
+            });
+            
+            apiCache.prices['esi'] = prices;
+            return prices;
+        }
+        
+        // Get product type ID from blueprint
+        async function getProductFromBlueprint(blueprintTypeId) {
+            const blueprintData = await getItemDetails(blueprintTypeId);
+            
+            if (blueprintData.activities && blueprintData.activities.manufacturing && 
+                blueprintData.activities.manufacturing.products && 
+                blueprintData.activities.manufacturing.products.length > 0) {
+                return blueprintData.activities.manufacturing.products[0].type_id;
+            }
+            
+            // If we can't determine from API, infer from name (fallback)
+            const blueprintName = blueprintData.name;
+            if (blueprintName.includes(' Blueprint')) {
+                const productName = blueprintName.replace(' Blueprint', '');
+                
+                // Search for the product
+                const searchParams = new URLSearchParams({
+                    categories: 'inventory_type',
+                    datasource: 'tranquility',
+                    language: 'en-us',
+                    search: productName,
+                    strict: 'true'
+                });
+                
+                const response = await fetch(`${ESI_BASE}${ESI_SEARCH}?${searchParams}`);
+                if (!response.ok) {
+                    throw new Error(`ESI API error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                if (data.inventory_type && data.inventory_type.length > 0) {
+                    return data.inventory_type[0];
+                }
+            }
+            
+            throw new Error('Could not determine product from blueprint');
+        }
+        
+        // Select and process blueprint
+        async function selectBlueprint(blueprintId) {
+            document.getElementById('search-results').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+            
+            try {
+                // Get blueprint details
+                const blueprint = await getItemDetails(blueprintId);
+                
+                // Get product type ID
+                const productTypeId = await getProductFromBlueprint(blueprintId);
+                
+                // Get product details
+                const product = await getItemDetails(productTypeId);
+                
+                // Get materials
+                const materials = blueprint.activities.manufacturing.materials;
+                
+                // Get material type IDs for pricing
+                const materialTypeIds = materials.map(mat => mat.type_id);
+                
+                // Add product ID for pricing
+                materialTypeIds.push(productTypeId);
+                
+                // Get market prices for all items
+                let prices;
+                try {
+                    prices = await getMarketPrices(materialTypeIds);
+                } catch (error) {
+                    console.warn('EVE Marketer API failed, falling back to ESI prices:', error);
+                    prices = await getESIPrices();
+                }
+                
+                // Update blueprint info
+                const productionTime = blueprint.activities.manufacturing.time;
+                document.getElementById('blueprint-info').innerHTML = `
+                    <h2>Blueprint Information</h2>
+                    <p><strong>${blueprint.name}</strong></p>
+                    <p>Produces: ${product.name}</p>
+                    <p>Production time: ${formatTime(productionTime)}</p>
+                `;
+                
+                // Process manufacturing settings
+                const me = parseInt(document.getElementById('me').value);
+                const runs = parseInt(document.getElementById('runs').value);
+                const facility = document.getElementById('facility').value;
+                const facilityBonus = facilityBonuses[facility] || 0;
+                
+                // Calculate ME bonus
+                const meMultiplier = (100 - me) / 100;
+                const totalMaterialMultiplier = meMultiplier * (1 - facilityBonus);
+                
+                // Update materials table
+                const materialsBody = document.getElementById('materials-body');
+                materialsBody.innerHTML = '';
+                
+                let totalMaterialCost = 0;
+                
+                // Parallel fetch for material names
+                const materialNames = await fetchItemNames(materialTypeIds);
+                
+                for (const mat of materials) {
+                    const matTypeId = mat.type_id;
+                    const matName = materialNames[matTypeId] || `Material #${matTypeId}`;
+                    const adjustedQuantity = Math.ceil(mat.quantity * totalMaterialMultiplier) * runs;
+                    
+                    // Get price (prioritize sell orders)
+                    const price = prices[matTypeId] ? 
+                        (prices[matTypeId].sell || prices[matTypeId].buy || 0) : 0;
+                    
+                    const totalCost = adjustedQuantity * price;
+                    totalMaterialCost += totalCost;
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${matName}</td>
+                        <td>${adjustedQuantity.toLocaleString()}</td>
+                        <td>${formatISK(price)}</td>
+                        <td>${formatISK(totalCost)}</td>
+                    `;
+                    materialsBody.appendChild(row);
+                }
+                
+                // Calculate manufacturing tax
+                const taxRate = parseFloat(document.getElementById('tax').value) / 100;
+                const taxCost = totalMaterialCost * taxRate;
+                
+                // Calculate installation fee (simplified)
+                const installFee = productionTime / 3600 * 1000; // Approx 1000 ISK per hour
+                
+                // Total manufacturing cost
+                const totalCost = totalMaterialCost + taxCost + installFee;
+                
+                // Update cost breakdown
+                document.getElementById('base-cost').textContent = formatISK(totalMaterialCost);
+                document.getElementById('tax-cost').textContent = formatISK(taxCost);
+                document.getElementById('install-cost').textContent = formatISK(installFee);
+                document.getElementById('total-cost').textContent = formatISK(totalCost);
+                
+                // Calculate profits
+                const productPrice = prices[productTypeId] ? 
+                    (prices[productTypeId].sell || prices[productTypeId].buy || 0) : 0;
+                
+                const totalValue = productPrice * runs;
+                const unitCost = totalCost / runs;
+                const unitProfit = productPrice - unitCost;
+                const totalProfit = unitProfit * runs;
+                const profitMargin = (unitProfit / unitCost) * 100;
+                
+                // Update profit analysis
+                document.getElementById('market-price').textContent = formatISK(productPrice);
+                document.getElementById('total-value').textContent = formatISK(totalValue);
+                document.getElementById('unit-cost').textContent = formatISK(unitCost);
+                
+                const unitProfitElement = document.getElementById('unit-profit');
+                unitProfitElement.textContent = formatISK(unitProfit);
+                unitProfitElement.className = unitProfit > 0 ? 'profit-good' : 'profit-bad';
+                
+                const totalProfitElement = document.getElementById('total-profit');
+                totalProfitElement.textContent = formatISK(totalProfit);
+                totalProfitElement.className = totalProfit > 0 ? 'profit-good' : 'profit-bad';
+                
+                const profitMarginElement = document.getElementById('profit-margin');
+                profitMarginElement.textContent = `${profitMargin.toFixed(2)}%`;
+                profitMarginElement.className = profitMargin > 0 ? 'profit-good' : 'profit-bad';
+                
+            } catch (error) {
+                showError(`Error processing blueprint: ${error.message}`);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+        
+        // Helper to format time in human-readable format
+        function formatTime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            
+            if (hours > 0) {
+                return `${hours} hours, ${minutes} minutes`;
+            } else {
+                return `${minutes} minutes`;
+            }
+        }
+        
+        // Fetch item names in batches
+        async function fetchItemNames(typeIds) {
+            const namesMap = {};
+            
+            // Check cache first
+            const uncachedIds = typeIds.filter(id => !apiCache.names[id]);
+            
+            if (uncachedIds.length === 0) {
+                // All names are cached
+                typeIds.forEach(id => {
+                    namesMap[id] = apiCache.names[id];
+                });
+                return namesMap;
+            }
+            
+            // Process in batches of 100 (ESI limit)
+            for (let i = 0; i < uncachedIds.length; i += 100) {
+                const batch = uncachedIds.slice(i, i + 100);
+                
+                try {
+                    const response = await fetch(`${ESI_BASE}${ESI_UNIVERSE_NAMES}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(batch)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`ESI API error: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    // Add to cache and result
+                    data.forEach(item => {
+                        apiCache.names[item.id] = item.name;
+                        namesMap[item.id] = item.name;
+                    });
+                } catch (error) {
+                    console.error('Error fetching item names:', error);
+                    // Continue with other batches
+                }
+            }
+            
+            // Add cached items to result
+            typeIds.forEach(id => {
+                if (apiCache.names[id] && !namesMap[id]) {
+                    namesMap[id] = apiCache.names[id];
+                }
+            });
+            
+            return namesMap;
+        }
+
+        // Add event listeners for settings changes
+        const settings = ['facility', 'me', 'te', 'runs', 'tax', 'market'];
+        settings.forEach(setting => {
+            document.getElementById(setting).addEventListener('change', () => {
+                // Recalculate if a blueprint is selected
+                const blueprintInfo = document.getElementById('blueprint-info');
+                if (!blueprintInfo.textContent.includes('No blueprint selected')) {
+                    // Re-run the last calculation
+                    const lastSearch = document.getElementById('item-search').value;
+                    if (lastSearch) {
+                        searchItems();
+                    }
+                }
+            });
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAPIStatus();
+        });
+    </script>
+</body>
+</html>
