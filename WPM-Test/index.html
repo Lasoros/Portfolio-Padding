@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="stylesheet" href="style.css">
+        
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>WPM Typing Test</title>
+
+</head>
+<body>
+    <div class="container">
+        <h1>Typing Speed Test</h1>
+        
+        <div class="settings">
+            <div class="difficulty-options">
+                <div class="difficulty-option">
+                    <input type="checkbox" id="punctuation" name="punctuation">
+                    <label for="punctuation">Punctuation</label>
+                </div>
+                <div class="difficulty-option">
+                    <input type="checkbox" id="numbers" name="numbers">
+                    <label for="numbers">Numbers</label>
+                </div>
+                <div class="difficulty-option">
+                    <input type="checkbox" id="capital-letters" name="capital-letters">
+                    <label for="capital-letters">Capital Letters</label>
+                </div>
+                <div class="difficulty-option">
+                    <input type="checkbox" id="special-chars" name="special-chars">
+                    <label for="special-chars">Special Characters</label>
+                </div>
+                <div class="difficulty-option">
+                    <input type="checkbox" id="long-words" name="long-words">
+                    <label for="long-words">Long Words</label>
+                </div>
+            </div>
+            <button id="start-btn" class="btn">Start Test</button>
+            <button id="reset-btn" class="btn" disabled>Reset</button>
+        </div>
+        
+        <div id="text-display" class="text-display">Select difficulty options and click Start Test to begin...</div>
+        
+        <input type="text" id="text-input" class="text-input" disabled placeholder="Type here when the test starts...">
+        
+        <div class="results">
+            <div class="result-item">
+                <div>WPM</div>
+                <div id="wpm" class="result-value">0</div>
+            </div>
+            <div class="result-item">
+                <div>Accuracy</div>
+                <div id="accuracy" class="result-value">0%</div>
+            </div>
+            <div class="result-item">
+                <div>Time</div>
+                <div id="time" class="result-value">0s</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Text samples for different difficulty levels
+        const textSamples = {
+            easy: [
+                "the quick brown fox jumps over the lazy dog",
+                "all good things must come to an end",
+                "practice makes perfect",
+                "a journey of a thousand miles begins with a single step",
+                "the early bird catches the worm"
+            ],
+            withPunctuation: [
+                "The quick brown fox jumps over the lazy dog.",
+                "Hello, world! How are you doing today?",
+                "Practice makes perfect; never give up on your dreams.",
+                "Wait, did you hear that? I thought I heard something.",
+                "First, try to understand the problem; then, solve it step by step."
+            ],
+            withNumbers: [
+                "I have 3 dogs and 2 cats at home.",
+                "The meeting is scheduled for 10:30 am on May 15, 2023.",
+                "You need to submit your assignment by page 42 of the textbook.",
+                "My phone number is 555-123-4567, please call me later.",
+                "There are 365 days in a year, or 366 in a leap year."
+            ],
+            withCapitals: [
+                "The United States of America is located in North America.",
+                "I visited Paris, France last summer with my friend John.",
+                "Microsoft and Apple are competing technology companies.",
+                "Mount Everest is the highest peak in the Himalayan mountain range.",
+                "The Pacific Ocean is the largest ocean on Earth."
+            ],
+            withSpecialChars: [
+                "My email is john.doe@example.com & my password is secure!",
+                "The symbol % represents percent, while $ represents dollars.",
+                "Please use the #hashtag when posting on social media platforms.",
+                "The equation is: E=mc² (energy equals mass times speed of light squared).",
+                "To comment out code, use // for single line or /* */ for multiple lines."
+            ],
+            withLongWords: [
+                "The incomprehensibility of the problem left everyone bewildered.",
+                "The antidisestablishmentarianism movement gained popularity during that era.",
+                "The electroencephalogram showed unusual brain activity patterns.",
+                "Pneumonoultramicroscopicsilicovolcanoconiosis is a lung disease caused by inhaling fine particles.",
+                "The interdisciplinary approach combines methodologies from various academic fields."
+            ]
+        };
+        
+        // DOM elements
+        const textDisplay = document.getElementById('text-display');
+        const textInput = document.getElementById('text-input');
+        const startBtn = document.getElementById('start-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const wpmDisplay = document.getElementById('wpm');
+        const accuracyDisplay = document.getElementById('accuracy');
+        const timeDisplay = document.getElementById('time');
+        
+        // Checkboxes
+        const punctuationCheck = document.getElementById('punctuation');
+        const numbersCheck = document.getElementById('numbers');
+        const capitalLettersCheck = document.getElementById('capital-letters');
+        const specialCharsCheck = document.getElementById('special-chars');
+        const longWordsCheck = document.getElementById('long-words');
+        
+        // Variables
+        let startTime, endTime;
+        let timer;
+        let currentText = '';
+        let typingStarted = false;
+        let elapsedTime = 0;
+        let errors = 0;
+        let totalCharactersTyped = 0;
+        
+        // Generate text based on selected difficulty
+        function generateText() {
+            let possibleTexts = [...textSamples.easy];
+            
+            if (punctuationCheck.checked) {
+                possibleTexts = possibleTexts.concat(textSamples.withPunctuation);
+            }
+            
+            if (numbersCheck.checked) {
+                possibleTexts = possibleTexts.concat(textSamples.withNumbers);
+            }
+            
+            if (capitalLettersCheck.checked) {
+                possibleTexts = possibleTexts.concat(textSamples.withCapitals);
+            }
+            
+            if (specialCharsCheck.checked) {
+                possibleTexts = possibleTexts.concat(textSamples.withSpecialChars);
+            }
+            
+            if (longWordsCheck.checked) {
+                possibleTexts = possibleTexts.concat(textSamples.withLongWords);
+            }
+            
+            // Select a random text from the possible texts
+            return possibleTexts[Math.floor(Math.random() * possibleTexts.length)];
+        }
+        
+        // Display text character by character with spans for styling
+        function displayText(text) {
+            textDisplay.innerHTML = '';
+            text.split('').forEach(char => {
+                const charSpan = document.createElement('span');
+                charSpan.innerText = char;
+                textDisplay.appendChild(charSpan);
+            });
+            
+            // Highlight the first character
+            textDisplay.firstChild.classList.add('current');
+        }
+        
+        // Start the typing test
+        function startTest() {
+            resetTest();
+            
+            currentText = generateText();
+            displayText(currentText);
+            
+            textInput.disabled = false;
+            textInput.focus();
+            startBtn.disabled = true;
+            resetBtn.disabled = false;
+            
+            // Disable difficulty options
+            toggleDifficultyOptions(true);
+            
+            startTime = new Date();
+            timer = setInterval(updateTimer, 1000);
+        }
+        
+        // Reset the typing test
+        function resetTest() {
+            clearInterval(timer);
+            textInput.value = '';
+            textInput.disabled = true;
+            startBtn.disabled = false;
+            resetBtn.disabled = true;
+            
+            // Enable difficulty options
+            toggleDifficultyOptions(false);
+            
+            textDisplay.innerHTML = 'Select difficulty options and click Start Test to begin...';
+            wpmDisplay.innerText = '0';
+            accuracyDisplay.innerText = '0%';
+            timeDisplay.innerText = '0s';
+            
+            elapsedTime = 0;
+            errors = 0;
+            totalCharactersTyped = 0;
+            typingStarted = false;
+        }
+        
+        // Toggle difficulty options
+        function toggleDifficultyOptions(disabled) {
+            punctuationCheck.disabled = disabled;
+            numbersCheck.disabled = disabled;
+            capitalLettersCheck.disabled = disabled;
+            specialCharsCheck.disabled = disabled;
+            longWordsCheck.disabled = disabled;
+        }
+        
+        // Update timer
+        function updateTimer() {
+            elapsedTime++;
+            timeDisplay.innerText = elapsedTime + 's';
+            
+            if (typingStarted) {
+                updateWPM();
+            }
+        }
+        
+        // Calculate and update WPM
+        function updateWPM() {
+            const timeElapsed = elapsedTime / 60; // Convert to minutes
+            const wordsTyped = textInput.value.trim().split(/\s+/).length;
+            const wpm = Math.round(wordsTyped / timeElapsed);
+            
+            wpmDisplay.innerText = wpm;
+        }
+        
+        // Calculate and update accuracy
+        function updateAccuracy() {
+            if (totalCharactersTyped === 0) return;
+            
+            const accuracy = Math.round(((totalCharactersTyped - errors) / totalCharactersTyped) * 100);
+            accuracyDisplay.innerText = accuracy + '%';
+        }
+        
+        // Handle input
+        function handleInput() {
+            if (!typingStarted) {
+                typingStarted = true;
+            }
+            
+            const inputText = textInput.value;
+            const currentPosition = inputText.length;
+            totalCharactersTyped = Math.max(totalCharactersTyped, currentPosition);
+            
+            // Compare input with current text
+            const textArray = currentText.split('');
+            const inputArray = inputText.split('');
+            
+            // Reset all classes
+            const spans = textDisplay.querySelectorAll('span');
+            spans.forEach(span => {
+                span.className = '';
+            });
+            
+            // Count errors and add classes for styling
+            errors = 0;
+            inputArray.forEach((char, index) => {
+                if (char === textArray[index]) {
+                    spans[index].classList.add('correct');
+                } else {
+                    spans[index].classList.add('incorrect');
+                    errors++;
+                }
+            });
+            
+            // Add current class to the next character
+            if (currentPosition < textArray.length) {
+                spans[currentPosition].classList.add('current');
+            }
+            
+            // Update accuracy
+            updateAccuracy();
+            
+            // Check if test is complete
+            if (currentPosition === textArray.length) {
+                finishTest();
+            }
+        }
+        
+        // Finish the typing test
+        function finishTest() {
+            endTime = new Date();
+            clearInterval(timer);
+            textInput.disabled = true;
+            
+            // Calculate final statistics
+            updateWPM();
+            updateAccuracy();
+        }
+        
+        // Event listeners
+        startBtn.addEventListener('click', startTest);
+        resetBtn.addEventListener('click', resetTest);
+        textInput.addEventListener('input', handleInput);
+    </script>
+</body>
+</html>

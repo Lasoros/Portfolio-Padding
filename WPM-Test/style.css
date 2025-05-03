@@ -1,0 +1,132 @@
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #0a2336;
+  color: #333;
+}
+
+//https://www.color-hex.com/color-palette/1059127 for color palette
+
+h1 {
+  text-align: center;
+  color: #2c3e50;
+  margin-bottom: 30px;
+}
+
+.container {
+  background-color: white;
+  border-radius: 10px;
+  padding: 25px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.settings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #eef2f7;
+  border-radius: 8px;
+}
+
+.difficulty-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.difficulty-option {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.btn:hover {
+  background-color: #2980b9;
+}
+
+.btn:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
+}
+
+.text-display {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 18px;
+  line-height: 1.8;
+  min-height: 200px;
+  border: 1px solid #ddd;
+}
+
+.correct {
+  color: #27ae60;
+  background-color: rgba(39, 174, 96, 0.1);
+}
+
+.incorrect {
+  color: #e74c3c;
+  background-color: rgba(231, 76, 60, 0.1);
+  text-decoration: underline wavy #e74c3c;
+}
+
+.current {
+  background-color: #f1c40f;
+  border-radius: 2px;
+}
+
+.text-input {
+  width: 100%;
+  padding: 8px;
+  font-size: 18px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  transition: border-color 0.3s;
+}
+
+.text-input:focus {
+  border-color: #3498db;
+  outline: none;
+}
+
+.text-input:disabled {
+  background-color: #ecf0f1;
+}
+
+.results {
+  display: flex;
+  justify-content: space-around;
+  background-color: #eef2f7;
+  padding: 15px;
+  border-radius: 8px;
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+.result-item {
+  text-align: center;
+}
+
+.result-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #2c3e50;
+}
