@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <link rel="stylesheet" href="style.css">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CompTIA A+ Practice Test</title>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1 class="app-title">CompTIA A+ Practice Test</h1>
+            <p class="app-description">Prepare for your CompTIA A+ certification with our practice questions</p>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="controls">
+            <select class="exam-select" id="examSelect">
+                <option value="core1">Core 1 (220-1101)</option>
+                <option value="core2">Core 2 (220-1102)</option>
+            </select>
+            <div>
+                <button class="button" id="startBtn">Start Practice Test</button>
+                <button class="button" id="reviewBtn" style="display: none;">Review Answers</button>
+            </div>
+        </div>
+        
+        <div class="card welcome-screen" id="welcomeScreen">
+            <h2 class="welcome-title">Welcome to the CompTIA A+ Practice Test</h2>
+            <p class="welcome-description">This practice test will help you prepare for the CompTIA A+ certification. Select an exam type and click "Start Practice Test" to begin.</p>
+            <p><strong>CompTIA A+ Core 1 (220-1101)</strong> focuses on:</p>
+            <ul style="text-align: left; margin: 10px 0 20px 30px;">
+                <li>Mobile Devices (15%)</li>
+                <li>Networking (20%)</li>
+                <li>Hardware (25%)</li>
+                <li>Virtualization and Cloud Computing (10%)</li>
+                <li>Hardware and Network Troubleshooting (30%)</li>
+            </ul>
+            <p><strong>CompTIA A+ Core 2 (220-1102)</strong> focuses on:</p>
+            <ul style="text-align: left; margin: 10px 0 20px 30px;">
+                <li>Operating Systems (31%)</li>
+                <li>Security (25%)</li>
+                <li>Software Troubleshooting (22%)</li>
+                <li>Operational Procedures (22%)</li>
+            </ul>
+        </div>
+        
+        <div class="timer" id="timer" style="display: none;">Time: 00:00</div>
+        
+        <div class="progress-container" id="progressContainer" style="display: none;">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <div class="stats" id="stats" style="display: none;">
+            <div class="stat-item">
+                <div class="stat-value" id="currentQuestion">0</div>
+                <div class="stat-label">Current Question</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalQuestions">0</div>
+                <div class="stat-label">Total Questions</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="correctAnswers">0</div>
+                <div class="stat-label">Correct</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="incorrectAnswers">0</div>
+                <div class="stat-label">Incorrect</div>
+            </div>
+        </div>
+        
+        <div class="card question-container" id="questionContainer">
+            <div class="question" id="question"></div>
+            <ul class="options" id="options"></ul>
+            <div class="explanation" id="explanation"></div>
+            <div class="navigation">
+                <button class="button" id="prevBtn">Previous</button>
+                <button class="button" id="submitBtn">Submit Answer</button>
+                <button class="button" id="nextBtn">Next Question</button>
+            </div>
+        </div>
+        
+        <div class="card results" id="results">
+            <h2>Test Results</h2>
+            <div class="score" id="score">0%</div>
+            <div class="result-message" id="resultMessage"></div>
+            <div class="result-details">
+                <p>Total Questions: <span id="resultTotal">0</span></p>
+                <p>Correct Answers: <span id="resultCorrect">0</span></p>
+                <p>Incorrect Answers: <span id="resultIncorrect">0</span></p>
+            </div>
+            <h3>Topic Breakdown</h3>
+            <div class="topic-breakdown-container" id="topicBreakdown"></div>
+            <div class="review-list" id="reviewList"></div>
+            <div style="margin-top: 20px;">
+                <button class="button button-success" id="restartBtn">Restart Test</button>
+                <button class="button" id="homeBtn">Return to Home</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    // Quiz data
+    const quizData = {
+        core1: [
+            {
+                question: "A technician needs to install several external USB devices to a computer. The technician installs the devices and sees they are recognized by the system but are not functioning properly. What is the MOST likely cause of the issue?",
+                options: [
+                    "The USB devices need to be connected to a powered USB hub.",
+                    "The USB cable lengths exceed the maximum specification.",
+                    "The USB ports are not providing enough power to the devices.",
+                    "The USB drivers need to be updated in the operating system."
+                ],
+                answer: 2,
+                explanation: "If external USB devices are recognized but not functioning properly, it's most likely because the USB ports aren't providing enough power. Many USB devices require more power than a standard USB port can provide, especially when multiple devices are connected. A powered USB hub would be the solution to this problem.",
+                topic: "Hardware"
+            },
+            {
+                question: "A user reports that whenever they try to connect to their corporate VPN from home, the connection fails with an error about the security certificate. Which of the following is the MOST likely cause?",
+                options: [
+                    "The company's VPN server certificate has expired.",
+                    "The user's router is blocking VPN traffic.",
+                    "The user's computer has an incorrect date and time.",
+                    "The VPN client software needs to be reinstalled."
+                ],
+                answer: 2,
+                explanation: "Certificate errors are often caused by incorrect date and time settings on the client device. If the computer's date is set incorrectly, it may think a valid certificate is expired or not yet valid. This is a common issue with VPN connections that rely on certificate-based authentication.",
+                topic: "Networking"
+            },
+            {
+                question: "A technician is troubleshooting a desktop computer that will not boot. The technician presses the power button, and the fans spin, but nothing appears on the display. Which of the following is the FIRST step the technician should perform?",
+                options: [
+                    "Replace the power supply.",
+                    "Verify the monitor is functioning correctly.",
+                    "Reset the CMOS.",
+                    "Reseat the memory modules."
+                ],
+                answer: 1,
+                explanation: "Following the CompTIA troubleshooting methodology, the first step should be to verify the most basic components are working. In this case, before assuming there's an issue with the computer itself, the technician should verify that the monitor is functioning correctly. It's possible the computer is booting correctly but there's an issue with the display.",
+                topic: "Hardware Troubleshooting"
+            },
+            {
+                question: "Which of the following wireless standards operates in the 5 GHz band with a maximum theoretical throughput of 6.9 Gbps?",
+                options: [
+                    "802.11g",
+                    "802.11n",
+                    "802.11ac",
+                    "802.11ax"
+                ],
+                answer: 3,
+                explanation: "802.11ax (Wi-Fi 6) operates in both 2.4 GHz and 5 GHz bands and offers a maximum theoretical throughput of up to 9.6 Gbps, though 6.9 Gbps is a common implementation. 802.11ac (Wi-Fi 5) operates only in the 5 GHz band but has a lower maximum throughput of about 3.5 Gbps.",
+                topic: "Networking"
+            },
+            {
+                question: "A technician needs to connect a computer to a network and install drivers for a printer. After connecting an Ethernet cable, the technician notices the link light on the NIC is not illuminated. Which of the following is the MOST likely cause?",
+                options: [
+                    "The Ethernet cable is a crossover cable.",
+                    "The NIC drivers are not installed.",
+                    "The Ethernet cable is damaged or not properly connected.",
+                    "The computer's firewall is blocking the connection."
+                ],
+                answer: 2,
+                explanation: "If the link light on the NIC is not illuminated after connecting an Ethernet cable, the most likely cause is a physical connectivity issue - either the cable is damaged, not properly seated in the port, or there's no connection at the other end of the cable. The link light indicates a physical connection, which occurs before any software drivers or firewall settings would come into play.",
+                topic: "Networking"
+            },
+            {
+                question: "A user's smartphone battery drains very quickly and the device feels warm when not in use. Which of the following is the MOST likely cause?",
+                options: [
+                    "The battery needs to be calibrated.",
+                    "Too many applications are running in the background.",
+                    "The screen brightness is set too high.",
+                    "The device is connected to a weak cellular signal."
+                ],
+                answer: 1,
+                explanation: "If a smartphone is draining battery quickly and feels warm when not in use, it's most likely because there are too many applications running in the background consuming system resources. Background apps use processing power and network connections, which leads to increased battery drain and device heating.",
+                topic: "Mobile Devices"
+            },
+            {
+                question: "A technician is replacing a failed hard drive in a RAID 5 array consisting of four drives. After replacing the drive, which of the following will occur?",
+                options: [
+                    "The array will automatically rebuild.",
+                    "The array must be manually rebuilt using the RAID controller software.",
+                    "The operating system will detect the new drive and format it.",
+                    "The RAID array must be completely recreated from a backup."
+                ],
+                answer: 1,
+                explanation: "After replacing a failed drive in a RAID 5 array, the array typically needs to be manually rebuilt using the RAID controller software or BIOS utility. While some enterprise-level RAID controllers may support automatic rebuilding, in most cases, the technician needs to initiate the rebuild process after the physical replacement.",
+                topic: "Hardware"
+            },
+            {
+                question: "A technician needs to install a new graphics card in a PC. After installation, the computer powers on but there is no display output. The fans on the graphics card are spinning. Which of the following should the technician check FIRST?",
+                options: [
+                    "If the graphics card is compatible with the motherboard.",
+                    "If the additional power connectors for the graphics card are connected.",
+                    "If the display is connected to the correct output port.",
+                    "If the latest graphics drivers are installed."
+                ],
+                answer: 2,
+                explanation: "When troubleshooting a new graphics card installation where the card appears to be receiving power (fans spinning) but there's no display, the first thing to check is whether the display cable is connected to the correct output port. A common mistake is leaving the monitor connected to the motherboard's integrated graphics output instead of connecting it to the new graphics card's ports.",
+                topic: "Hardware Troubleshooting"
+            },
+            {
+                question: "A user wants to connect multiple devices to the Internet using a single public IP address. Which of the following technologies would BEST accomplish this?",
+                options: [
+                    "DHCP",
+                    "NAT",
+                    "DNS",
+                    "VPN"
+                ],
+                answer: 1,
+                explanation: "Network Address Translation (NAT) is specifically designed to allow multiple devices to share a single public IP address. It works by maintaining a table of private IP addresses and ports, mapping them to the single public IP with different ports. This is a standard feature in home routers that allows all home devices to connect to the Internet.",
+                topic: "Networking"
+            },
+            {
+                question: "A technician is setting up a small business network with public-facing servers. Which of the following should the technician implement to separate the internal network from the servers accessible by the public?",
+                options: [
+                    "VLAN",
+                    "DMZ",
+                    "VPN",
+                    "NAT"
+                ],
+                answer: 1,
+                explanation: "A DMZ (Demilitarized Zone) is specifically designed to separate public-facing servers from the internal network. It creates a buffer zone where public-facing servers can be accessed from the Internet while keeping the internal network protected and inaccessible. This is a standard security practice for business networks with public services.",
+                topic: "Networking"
+            }
+        ],
+        core2: [
+            {
+                question: "A user is unable to access a shared network folder that was accessible yesterday. The user can access other network resources without issues. Which of the following is the MOST likely cause?",
+                options: [
+                    "The user's account has been locked out.",
+                    "The user's permissions to the folder have been revoked.",
+                    "The network cable is disconnected.",
+                    "The user's computer has a virus."
+                ],
+                answer: 1,
+                explanation: "If a user can access other network resources but not a specific shared folder that was previously accessible, the most likely cause is that the user's permissions for that specific folder have been revoked or modified. Network connectivity issues would affect all network resources, not just one specific folder.",
+                topic: "Operating Systems"
+            },
+            {
+                question: "A technician needs to upgrade a Windows laptop from Windows 10 Home to Windows 10 Pro. Which of the following is the correct method to perform this upgrade?",
+                options: [
+                    "Perform a clean installation of Windows 10 Pro using installation media.",
+                    "Use Windows Update to download and install the Pro edition.",
+                    "Purchase and enter a Windows 10 Pro key in the Change Product Key section of the activation settings.",
+                    "Download the Windows 10 Pro Pack from the Microsoft Store."
+                ],
+                answer: 2,
+                explanation: "To upgrade from Windows 10 Home to Windows 10 Pro, the correct method is to purchase a Windows 10 Pro license key and enter it in the Change Product Key section of the activation settings. This will upgrade the existing installation without requiring a clean install or losing data.",
+                topic: "Operating Systems"
+            },
+            {
+                question: "A company is implementing a new security policy requiring all employees to change their passwords every 90 days. Which of the following should be configured to enforce this policy?",
+                options: [
+                    "User Account Control",
+                    "Password History",
+                    "Account Lockout Policy",
+                    "Maximum Password Age"
+                ],
+                answer: 3,
+                explanation: "To enforce a policy requiring password changes every 90 days, the Maximum Password Age setting should be configured. This setting is part of the password policy in Windows and specifies how long a password can be used before the user is required to change it.",
+                topic: "Security"
+            },
+            {
+                question: "A user reports that their computer is running slowly and frequently displaying pop-up advertisements, even when no browser is open. Which of the following types of malware is MOST likely present on the system?",
+                options: [
+                    "Ransomware",
+                    "Rootkit",
+                    "Adware",
+                    "Keylogger"
+                ],
+                answer: 2,
+                explanation: "Based on the symptoms described (system running slowly and displaying pop-up advertisements even without a browser open), adware is the most likely type of malware present. Adware is specifically designed to display unwanted advertisements and often impacts system performance.",
+                topic: "Security"
+            },
+            {
+                question: "After installing a new application, a Windows 10 computer fails to boot properly and enters a repair loop. Which of the following tools should be used to resolve this issue?",
+                options: [
+                    "System Restore",
+                    "Check Disk",
+                    "Task Manager",
+                    "Device Manager"
+                ],
+                answer: 0,
+                explanation: "When a computer fails to boot properly after installing a new application, System Restore is the appropriate tool to use. It allows rolling back the system to a previous state (restore point) before the application was installed, undoing the changes that caused the boot failure.",
+                topic: "Software Troubleshooting"
+            },
+            {
+                question: "A technician needs to remotely assist a user with a computer issue but cannot be physically present at the user's location. Which of the following built-in Windows tools would BEST help in this situation?",
+                options: [
+                    "Task Scheduler",
+                    "Remote Desktop Connection",
+                    "Windows Memory Diagnostic",
+                    "Resource Monitor"
+                ],
+                answer: 1,
+                explanation: "Remote Desktop Connection is the built-in Windows tool designed for remotely assisting users with computer issues. It allows the technician to see and control the user's desktop as if they were physically present, making it the best choice for remote assistance.",
+                topic: "Operating Systems"
+            },
+            {
+                question: "A user reports that an application frequently freezes on their Windows 10 computer. The technician wants to terminate just the problematic application without restarting the entire system. Which tool should the technician use?",
+                options: [
+                    "Task Manager",
+                    "System Configuration",
+                    "Performance Monitor",
+                    "Resource Monitor"
+                ],
+                answer: 0,
+                explanation: "Task Manager is the appropriate tool for terminating a frozen application without affecting the rest of the system. It allows viewing running processes and applications and selectively ending those that are problematic or unresponsive.",
+                topic: "Software Troubleshooting"
+            },
+            {
+                question: "A company wants to ensure that data on a lost or stolen laptop cannot be accessed by unauthorized individuals. Which of the following should be implemented?",
+                options: [
+                    "File permissions",
+                    "User account passwords",
+                    "Full disk encryption",
+                    "Firewall rules"
+                ],
+                answer: 2,
+                explanation: "Full disk encryption is the best solution for protecting data on lost or stolen laptops. When implemented, it encrypts the entire disk so that the data cannot be accessed without the encryption key, even if the hard drive is removed and connected to another system.",
+                topic: "Security"
+            },
+            {
+                question: "A technician is tasked with setting up workstations that will be used in a public area. Which of the following should be implemented to prevent unauthorized software installation?",
+                options: [
+                    "Configure User Account Control settings",
+                    "Create standard user accounts instead of administrator accounts",
+                    "Install antivirus software",
+                    "Enable Windows Firewall"
+                ],
+                answer: 1,
+                explanation: "To prevent unauthorized software installation on public workstations, creating standard user accounts instead of administrator accounts is the most effective approach. Standard users do not have the necessary permissions to install software, which helps maintain system security and stability in public environments.",
+                topic: "Security"
+            },
+            {
+                question: "A user reports that their computer is running out of storage space. After investigation, the technician discovers that the C: drive is nearly full. Which built-in Windows utility should be used to identify which files and folders are consuming the most space?",
+                options: [
+                    "Disk Cleanup",
+                    "Disk Defragmenter",
+                    "Storage Spaces",
+                    "Storage Analyzer"
+                ],
+                answer: 0,
+                explanation: "Disk Cleanup is the built-in Windows utility designed to identify and remove unnecessary files to free up disk space. It can detect temporary files, system files, previous Windows installations, and other items that can be safely removed to reclaim storage space.",
+                topic: "Software Troubleshooting"
+            }
+        ]
+    };
+    
+    // Variables to track quiz state
+    let currentExam = "core1";
+    let currentQuestionIndex = 0;
+    let userAnswers = [];
+    let score = 0;
+    let quizStarted = false;
+    let quizFinished = false;
+    let timerInterval;
+    let seconds = 0;
+    
+    // DOM elements
+    const welcomeScreen = document.getElementById("welcomeScreen");
+    const questionContainer = document.getElementById("questionContainer");
+    const resultsContainer = document.getElementById("results");
+    const progressContainer = document.getElementById("progressContainer");
+    const progressBar = document.getElementById("progressBar");
+    const statsContainer = document.getElementById("stats");
+    const timerElement = document.getElementById("timer");
+    
+    const questionElement = document.getElementById("question");
+    const optionsElement = document.getElementById("options");
+    const explanationElement = document.getElementById("explanation");
+    
+    const currentQuestionElement = document.getElementById("currentQuestion");
+    const totalQuestionsElement = document.getElementById("totalQuestions");
+    const correctAnswersElement = document.getElementById("correctAnswers");
+    const incorrectAnswersElement = document.getElementById("incorrectAnswers");
+    
+    const startButton = document.getElementById("startBtn");
+    const prevButton = document.getElementById("prevBtn");
+    const nextButton = document.getElementById("nextBtn");
+    const submitButton = document.getElementById("submitBtn");
+    const restartButton = document.getElementById("restartBtn");
+    const homeButton = document.getElementById("homeBtn");
+    const reviewButton = document.getElementById("reviewBtn");
+    const examSelect = document.getElementById("examSelect");
+    
+    const scoreElement = document.getElementById("score");
+    const resultMessageElement = document.getElementById("resultMessage");
+    const resultTotalElement = document.getElementById("resultTotal");
+    const resultCorrectElement = document.getElementById("resultCorrect");
+    const resultIncorrectElement = document.getElementById("resultIncorrect");
+    const topicBreakdownElement = document.getElementById("topicBreakdown");
+    const reviewListElement = document.getElementById("reviewList");
+    
+    // Event listeners
+    startButton.addEventListener("click", startQuiz);
+    prevButton.addEventListener("click", showPreviousQuestion);
+    nextButton.addEventListener("click", showNextQuestion);
+    submitButton.addEventListener("click", submitAnswer);
+    restartButton.addEventListener("click", restartQuiz);
+    homeButton.addEventListener("click", goToHome);
+    reviewButton.addEventListener("click", showResults);
+    examSelect.addEventListener("change", (e) => {
+        currentExam = e.target.value;
+    });
+    
+    // Initialize application
+    function init() {
+        showWelcomeScreen();
+    }
+    
+    function showWelcomeScreen() {
+        welcomeScreen.style.display = "block";
+        questionContainer.style.display = "none";
+        resultsContainer.style.display = "none";
+        progressContainer.style.display = "none";
+        statsContainer.style.display = "none";
+        timerElement.style.display = "none";
+        startButton.style.display = "block";
+        reviewButton.style.display = "none";
+    }
+    
+    function startQuiz() {
+        currentQuestionIndex = 0;
+        userAnswers = Array(quizData[currentExam].length).fill(null);
+        score = 0;
+        quizStarted = true;
+        quizFinished = false;
+        
+        welcomeScreen.style.display = "none";
+        questionContainer.style.display = "block";
+        resultsContainer.style.display = "none";
+        progressContainer.style.display = "block";
+        statsContainer.style.display = "flex";
+        timerElement.style.display = "block";
+        startButton.style.display = "none";
+}

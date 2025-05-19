@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Overtime Pay Calculator</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      color: #333;
+    }
+    
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    
+    button {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+      margin-top: 10px;
+    }
+    
+    button:hover {
+      background: #2980b9;
+    }
+    
+    .results {
+      display: none;
+      margin-top: 30px;
+    }
+    
+    .results h2 {
+      color: #2c3e50;
+      margin-bottom: 15px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    
+    th, td {
+      padding: 12px;
+      text-align: left;
+    }
+    
+    th {
+      background-color: #f2f2f2;
+    }
+    
+    .summary {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f8f9fa;
+      border-radius: 4px;
+    }
+    
+    .discrepancy {
+      font-weight: bold;
+      color: #e74c3c;
+    }
+    
+    .positive {
+      color: #27ae60;
+    }
+    
+    .week-container {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 15px;
+      margin-bottom: 15px;
+      background-color: #f9f9f9;
+    }
+    
+    .week-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    
+    .days-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    
+    .day-input {
+      flex: 1 0 120px;
+    }
+    
+    .add-btn {
+      background: #2ecc71;
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+    
+    .remove-btn {
+      background: #e74c3c;
+      width: auto;
+      padding: 5px 10px;
+      margin-top: 0;
+      font-size: 14px;
+    }
+    
+    @media (max-width: 600px) {
+      .day-input {
+        flex: 1 0 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Overtime Pay Calculator</h1>
+  
+  <div class="card">
+    <h2>Pay Rate Information</h2>
+    <div class="form-group">
+      <label for="regularRate">Regular Hourly Rate ($):</label>
+      <input type="number" id="regularRate" step="0.01" min="0" placeholder="Enter your regular hourly rate" required>
+    </div>
+    
+    <div class="form-group">
+      <label for="otMultiplier">Overtime Multiplier (typically 1.5):</label>
+      <input type="number" id="otMultiplier" step="0.1" min="1" value="1.5" required>
+    </div>
+    
+    <div class="form-group">
+      <label for="overtimeThreshold">Overtime Threshold (hours per week):</label>
+      <input type="number" id="overtimeThreshold" value="40" min="0" required>
+    </div>
+  </div>
+  
+  <div class="card">
+    <h2>Portal-to-Portal Drive Time</h2>
+    <p>Track unpaid drive time that should be compensated under portal-to-portal regulations</p>
+    
+    <div class="form-group">
+      <label for="driveTimeCalculation">How would you like to enter drive time?</label>
+      <select id="driveTimeCalculation">
+        <option value="exact">Enter exact drive time for each week</option>
+        <option value="average">Use average drive time per week</option>
+      </select>
+    </div>
+    
+    <div id="exactDriveTime">
+      <div id="driveTimeWeeksContainer">
+        <div class="form-group">
+          <label for="driveTimeWeek1">Week 1 Total Drive Time (hours):</label>
+          <input type="number" id="driveTimeWeek1" step="0.25" min="0" placeholder="Hours">
+        </div>
+        <div class="form-group">
+          <label for="driveTimeWeek2">Week 2 Total Drive Time (hours):</label>
+          <input type="number" id="driveTimeWeek2" step="0.25" min="0" placeholder="Hours">
+        </div>
+      </div>
+      <button type="button" id="addDriveTimeWeekBtn" class="add-btn">Add Another Week</button>
+    </div>
+    
+    <div id="averageDriveTime" style="display: none;">
+      <div class="form-group">
+        <label for="avgDriveTimePerWeek">Average Drive Time Per Week (hours):</label>
+        <input type="number" id="avgDriveTimePerWeek" step="0.25" min="0" placeholder="Hours">
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label for="driveTimeActuallyPaid">Drive Time Actually Paid (hours):</label>
+      <input type="number" id="driveTimeActuallyPaid" step="0.25" min="0" value="0" placeholder="Hours">
+    </div>
+  </div>
+  
+  <div class="card">
+    <h2>Pay Period Details</h2>
+    <div id="weeksContainer">
+      <!-- Week 1 -->
+      <div class="week-container" id="week1">
+        <div class="week-title">Week 1</div>
+        <div class="days-container">
+          <div class="day-input">
+            <label for="w1d1">Monday:</label>
+            <input type="number" id="w1d1" min="0" step="0.5" placeholder="Hours">
+          </div>
+          <div class="day-input">
+            <label for="w1d2">Tuesday:</label>
+            <input type="number" id="w1d2" min="0" step="0.5" placeholder="Hours">
+          </div>
+          <div class="day-input">
+            <label for="w1d3">Wednesday:</label>
+            <input type="number" id="w1d3" min="0" step="0.5" placeholder="Hours">
+          </div>
+          <div class="day-input">
+            <label for="w1d4">Thursday:</label>
+            <input type="number" id="w1d4" min="0" step="0.5" placeholder="Hours">
+          </div>
+          <div class="day-input">
+            <label for="w1d5">Friday:</label>
+            <input type="number" id="w1d5" min="0" step="0.5" placeholder="Hours">
+          </div>
+          <div class="day-input">
+            <label for="w1d6">Saturday:</label>
+            <input type="number" id="w1d6" min="0" step="0.5" placeholder="Hours">
+          </div>
+          <div class="day-input">
+            <label for="w1d7">Sunday:</label>
+            <input type="number" id="w1d7" min="0" step="0.5" placeholder="Hours">
+          </div>
+        </div>
+      </div>
+      
+      <!-- Week 2 -->
+      <div class="week-container" id="week2">
+        <div class="week-title">Week 2</div>
+        <div class="days-container">
+          <div class="day-input">
+            <label for="w2d1">Monday:</label>
+            <input type="number" id="w2d1" min="0" step="0.5" placeholder="Hours">
+          </div>
+          <div class="day-input">
+            <label for="w2d2">Tuesday:</label>
+            <input type="number" id="w2d2" min="0" step="0.5" placeholder="Hours">
+          </div>
+          <div class="day-input">
+            <label for="w2d3">Wednesday:</label>
+            <input type="number" id="w2d3" min="0" step="0.5" placeholder="Hours">
+          </div>
+          <div class="day-input">
+            <label for="w2d4">Thursday:</label>
+            <input type="number" id="w2d4" min="0" step="0.5" placeholder="Hours">
+          </div>
+          <div class="day-input">
+            <label for="w2d5">Friday:</label>
+            <input type="number" id="w2d5" min="0" step="0.5" placeholder="Hours">
+          </div>
+          <div class="day-input">
+            <label for="w2d6">Saturday:</label>
+            <input type="number" id="w2d6" min="0" step="0.5" placeholder="Hours">
+          </div>
+          <div class="day-input">
+            <label for="w2d7">Sunday:</label>
+            <input type="number" id="w2d7" min="0" step="0.5" placeholder="Hours">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button type="button" id="addWeekBtn" class="add-btn">Add Another Week</button>
+  </div>
+  
+  <div class="card">
+    <h2>Actual Payment Received</h2>
+    <div class="form-group">
+      <label for="actualRegularPay">Actual Regular Pay Received ($):</label>
+      <input type="number" id="actualRegularPay" step="0.01" min="0" placeholder="Enter the regular pay you received">
+    </div>
+    
+    <div class="form-group">
+      <label for="actualOTPay">Actual Overtime Pay Received ($):</label>
+      <input type="number" id="actualOTPay" step="0.01" min="0" placeholder="Enter the overtime pay you received">
+    </div>
+    
+    <button type="button" id="calculateBtn">Calculate</button>
+  </div>
+  
+  <div class="results card" id="results">
+    <h2>Results</h2>
+    
+    <div id="weeklyBreakdown"></div>
+    
+    <div class="summary" id="summary"></div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize variables
+      let weekCount = 2;
+      let driveTimeWeekCount = 2;
+      
+      // Add event listeners
+      document.getElementById('calculateBtn').addEventListener('click', calculatePay);
+      document.getElementById('addWeekBtn').addEventListener('click', addWeek);
+      document.getElementById('addDriveTimeWeekBtn').addEventListener('click', addDriveTimeWeek);
+      
+      // Drive time calculation method toggle
+      const driveTimeCalculation = document.getElementById('driveTimeCalculation');
+      driveTimeCalculation.addEventListener('change', function() {
+        const exactDriveTime = document.getElementById('exactDriveTime');
+        const averageDriveTime = document.getElementById('averageDriveTime');
+        
+        if (this.value === 'exact') {
+          exactDriveTime.style.display = 'block';
+          averageDriveTime.style.display = 'none';
+        } else {
+          exactDriveTime.style.display = 'none';
+          averageDriveTime.style.display = 'block';
+        }
+      });
+      
+      // Function to add another drive time week
+      function addDriveTimeWeek() {
+        driveTimeWeekCount++;
+        
+        const container = document.getElementById('driveTimeWeeksContainer');
+        
+        const formGroup = document.createElement('div');
+        formGroup.className = 'form-group';
+        
+        const label = document.createElement('label');
+        label.setAttribute('for', `driveTimeWeek${driveTimeWeekCount}`);
+        label.textContent = `Week ${driveTimeWeekCount} Total Drive Time (hours):`;
+        
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.id = `driveTimeWeek${driveTimeWeekCount}`;
+        input.step = '0.25';
+        input.min = '0';
+        input.placeholder = 'Hours';
+        
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-btn';
+        removeBtn.textContent = 'Remove';
+        removeBtn.style.marginLeft = '10px';
+        removeBtn.onclick = function() {
+          container.removeChild(formGroup);
+          // Renumber drive time weeks
+          renumberDriveTimeWeeks();
+        };
+        
+        formGroup.appendChild(label);
+        formGroup.appendChild(input);
+        formGroup.appendChild(removeBtn);
+        
+        container.appendChild(formGroup);
+      }
+      
+      // Function to renumber drive time weeks
+      function renumberDriveTimeWeeks() {
+        const formGroups = document.querySelectorAll('#driveTimeWeeksContainer .form-group');
+        driveTimeWeekCount = formGroups.length;
+        
+        formGroups.forEach((group, index) => {
+          const weekNum = index + 1;
+          const label = group.querySelector('label');
+          const input = group.querySelector('input');
+          
+          label.setAttribute('for', `driveTimeWeek${weekNum}`);
+          label.textContent = `Week ${weekNum} Total Drive Time (hours):`;
+          input.id = `driveTimeWeek${weekNum}`;
+        });
+      }
+      
+      // Function to add another week
+      function addWeek() {
+        weekCount++;
+        
+        const weekContainer = document.createElement('div');
+        weekContainer.className = 'week-container';
+        weekContainer.id = 'week' + weekCount;
+        
+        const weekTitle = document.createElement('div');
+        weekTitle.className = 'week-title';
+        weekTitle.textContent = 'Week ' + weekCount;
+        
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-btn';
+        removeBtn.textContent = 'Remove Week';
+        removeBtn.onclick = function() {
+          document.getElementById('weeksContainer').removeChild(weekContainer);
+          // Renumber remaining weeks
+          renumberWeeks();
+        };
+        
+        weekTitle.appendChild(removeBtn);
+        
+        const daysContainer = document.createElement('div');
+        daysContainer.className = 'days-container';
+        
+        const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        
+        for (let i = 1; i <= 7; i++) {
+          const dayInput = document.createElement('div');
+          dayInput.className = 'day-input';
+          
+          const label = document.createElement('label');
+          label.setAttribute('for', `w${weekCount}d${i}`);
+          label.textContent = dayNames[i-1] + ':';
+          
+          const input = document.createElement('input');
+          input.type = 'number';
+          input.id = `w${weekCount}d${i}`;
+          input.min = '0';
+          input.step = '0.5';
+          input.placeholder = 'Hours';
+          
+          dayInput.appendChild(label);
+          dayInput.appendChild(input);
+          daysContainer.appendChild(dayInput);
+        }
+        
+        weekContainer.appendChild(weekTitle);
+        weekContainer.appendChild(daysContainer);
+        
+        document.getElementById('weeksContainer').appendChild(weekContainer);
+      }
+      
+      // Function to renumber weeks after removal
+      function renumberWeeks() {
+        const weekContainers = document.querySelectorAll('.week-container');
+        weekCount = weekContainers.length;
+        
+        weekContainers.forEach((container, index) => {
+          const weekNum = index + 1;
+          container.id = 'week' + weekNum;
+          container.querySelector('.week-title').childNodes[0].nodeValue = 'Week ' + weekNum;
+          
+          // Update input IDs
+          const inputs = container.querySelectorAll('input');
+          inputs.forEach((input, dayIndex) => {
+            input.id = `w${weekNum}d${dayIndex + 1}`;
+            input.previousElementSibling.setAttribute('for', input.id);
+          });
+        });
+      }
+      
+      // Function to calculate pay
+      function calculatePay() {
+        // Get base rates
+        const regularRate = parseFloat(document.getElementById('regularRate').value);
+        const otMultiplier = parseFloat(document.getElementById('otMultiplier').value);
+        const overtimeThreshold = parseFloat(document.getElementById('overtimeThreshold').value);
+        
+        // Get actual amounts received
+        const actualRegularPay = parseFloat(document.getElementById('actualRegularPay').value) || 0;
+        const actualOTPay = parseFloat(document.getElementById('actualOTPay').value) || 0;
+        
+        if (!regularRate) {
+          alert('Please enter your regular hourly rate.');
+          return;
+        }
+        
+        // Calculate for each week
+        const weeklyData = [];
+        let totalRegularHours = 0;
+        let totalOTHours = 0;
+        
+        const weekContainers = document.querySelectorAll('.week-container');
+        
+        weekContainers.forEach((weekContainer, weekIndex) => {
+          const weekNum = weekIndex + 1;
+          let weeklyHours = 0;
+          let dailyHours = [];
+          
+          // Get hours for each day
+          for (let day = 1; day <= 7; day++) {
+            const hoursInput = document.getElementById(`w${weekNum}d${day}`);
+            const hours = parseFloat(hoursInput.value) || 0;
+            weeklyHours += hours;
+            dailyHours.push(hours);
+          }
+          
+          // Calculate regular and OT hours
+          const regularHours = Math.min(weeklyHours, overtimeThreshold);
+          const otHours = Math.max(0, weeklyHours - overtimeThreshold);
+          
+          // Calculate pay
+          const regularPay = regularHours * regularRate;
+          const otPay = otHours * regularRate * otMultiplier;
+          const totalPay = regularPay + otPay;
+          
+          weeklyData.push({
+            weekNum,
+            dailyHours,
+            weeklyHours,
+            regularHours,
+            otHours,
+            regularPay,
+            otPay,
+            totalPay
+          });
+          
+          totalRegularHours += regularHours;
+          totalOTHours += otHours;
+        });
+        
+        // Calculate expected total pay
+        const expectedRegularPay = totalRegularHours * regularRate;
+        const expectedOTPay = totalOTHours * regularRate * otMultiplier;
+        const expectedTotalPay = expectedRegularPay + expectedOTPay;
+        
+        const actualTotalPay = actualRegularPay + actualOTPay;
+        
+        // Calculate discrepancies
+        const regularPayDiff = actualRegularPay - expectedRegularPay;
+        const otPayDiff = actualOTPay - expectedOTPay;
+        const totalPayDiff = actualTotalPay - expectedTotalPay;
+        
+        // Display results
+        renderWeeklyBreakdown(weeklyData, regularRate, otMultiplier);
+        renderSummary(
+          totalRegularHours, 
+          totalOTHours, 
+          expectedRegularPay, 
+          expectedOTPay, 
+          expectedTotalPay,
+          actualRegularPay,
+          actualOTPay,
+          actualTotalPay,
+          regularPayDiff,
+          otPayDiff,
+          totalPayDiff
+        );
+        
+        document.getElementById('results').style.display = 'block';
+        document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+      }
+      
+      // Function to render weekly breakdown
+      function renderWeeklyBreakdown(weeklyData, regularRate, otMultiplier) {
+        const container = document.getElementById('weeklyBreakdown');
+        container.innerHTML = '';
+        
+        weeklyData.forEach(week => {
+          const weekDiv = document.createElement('div');
+          weekDiv.className = 'weekly-summary';
+          
+          const weekTable = document.createElement('table');
+          
+          // Create header
+          const header = weekTable.createTHead();
+          const headerRow = header.insertRow();
+          const headerCells = [
+            'Week ' + week.weekNum,
+            'Mon',
+            'Tue',
+            'Wed',
+            'Thu',
+            'Fri',
+            'Sat',
+            'Sun',
+            'Total Hours',
+            'Regular Hours',
+            'OT Hours',
+            'Expected Pay'
+          ];
+          
+          headerCells.forEach(text => {
+            const th = document.createElement('th');
+            th.textContent = text;
+            headerRow.appendChild(th);
+          });
+          
+          // Create body
+          const body = weekTable.createTBody();
+          const row = body.insertRow();
+          
+          // Add first cell - week number
+          const weekCell = row.insertCell();
+          weekCell.textContent = 'Hours';
+          
+          // Add day cells
+          week.dailyHours.forEach(hours => {
+            const cell = row.insertCell();
+            cell.textContent = hours || '-';
+          });
+          
+          // Add total hours
+          const totalCell = row.insertCell();
+          totalCell.textContent = week.weeklyHours.toFixed(1);
+          
+          // Add regular hours
+          const regularCell = row.insertCell();
+          regularCell.textContent = week.regularHours.toFixed(1);
+          
+          // Add OT hours
+          const otCell = row.insertCell();
+          otCell.textContent = week.otHours.toFixed(1);
+          
+          // Add expected pay
+          const payCell = row.insertCell();
+          payCell.textContent = '$' + week.totalPay.toFixed(2);
+          
+          weekDiv.appendChild(weekTable);
+          container.appendChild(weekDiv);
+        });
+      }
+      
+      // Function to render summary
+      function renderSummary(
+        totalRegularHours, 
+        totalOTHours, 
+        expectedRegularPay, 
+        expectedOTPay, 
+        expectedTotalPay,
+        actualRegularPay,
+        actualOTPay,
+        actualTotalPay,
+        regularPayDiff,
+        otPayDiff,
+        totalPayDiff
+      ) {
+        const container = document.getElementById('summary');
+        
+        const formatter = new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: 'USD'
+        });
+        
+        container.innerHTML = `
+          <h3>Summary</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Expected</th>
+                <th>Actual</th>
+                <th>Difference</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Regular Hours Pay</td>
+                <td>${formatter.format(expectedRegularPay)}</td>
+                <td>${actualRegularPay ? formatter.format(actualRegularPay) : 'N/A'}</td>
+                <td class="${regularPayDiff < 0 ? 'discrepancy' : regularPayDiff > 0 ? 'positive' : ''}">
+                  ${actualRegularPay ? formatter.format(regularPayDiff) : 'N/A'}
+                </td>
+              </tr>
+              <tr>
+                <td>Overtime Pay</td>
+                <td>${formatter.format(expectedOTPay)}</td>
+                <td>${actualOTPay ? formatter.format(actualOTPay) : 'N/A'}</td>
+                <td class="${otPayDiff < 0 ? 'discrepancy' : otPayDiff > 0 ? 'positive' : ''}">
+                  ${actualOTPay ? formatter.format(otPayDiff) : 'N/A'}
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Total Pay</strong></td>
+                <td><strong>${formatter.format(expectedTotalPay)}</strong></td>
+                <td><strong>${(actualRegularPay || actualOTPay) ? formatter.format(actualTotalPay) : 'N/A'}</strong></td>
+                <td class="${totalPayDiff < 0 ? 'discrepancy' : totalPayDiff > 0 ? 'positive' : ''}">
+                  <strong>${(actualRegularPay || actualOTPay) ? formatter.format(totalPayDiff) : 'N/A'}</strong>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div style="margin-top: 20px;">
+            <p><strong>Hours Summary:</strong> ${totalRegularHours.toFixed(1)} regular hours + ${totalOTHours.toFixed(1)} overtime hours</p>
+            ${totalPayDiff < 0 ? 
+              `<p class="discrepancy"><strong>You may be underpaid by ${formatter.format(Math.abs(totalPayDiff))}.</strong></p>` : 
+              totalPayDiff > 0 ? 
+              `<p class="positive"><strong>You received ${formatter.format(totalPayDiff)} more than calculated.</strong></p>` :
+              (actualRegularPay || actualOTPay) ? 
+              `<p><strong>Your pay matches the calculated amount.</strong></p>` : ''}
+          </div>
+        `;
+      }
+    });
+  </script>
+</body>
+</html>

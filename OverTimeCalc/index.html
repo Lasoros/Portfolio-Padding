@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overtime Pay Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .container {
+            background-color: #f7f9fc;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .pay-period {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .days-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 10px;
+        }
+        .day-entry {
+            background-color: #edf2f7;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+        .day-entry input {
+            margin-bottom: 8px;
+        }
+        .day-entry label {
+            margin-top: 5px;
+        }
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #e8f4fc;
+            border-radius: 4px;
+            display: none;
+        }
+        .results h2 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .results-table th, .results-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        .results-table th {
+            background-color: #f2f2f2;
+        }
+        .totals {
+            font-weight: bold;
+            background-color: #f0f8ff;
+        }
+        .discrepancy {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        .positive-discrepancy {
+            color: #27ae60;
+        }
+        .add-day-btn {
+            background-color: #2ecc71;
+            margin-top: 5px;
+            width: 100%;
+        }
+        .add-day-btn:hover {
+            background-color: #27ae60;
+        }
+        .remove-day-btn {
+            background-color: #e74c3c;
+            margin-top: 5px;
+            width: 100%;
+        }
+        .remove-day-btn:hover {
+            background-color: #c0392b;
+        }
+        .add-period-btn {
+            background-color: #9b59b6;
+            margin-bottom: 20px;
+        }
+        .add-period-btn:hover {
+            background-color: #8e44ad;
+        }
+        .remove-period-btn {
+            background-color: #e74c3c;
+            float: right;
+        }
+        .remove-period-btn:hover {
+            background-color: #c0392b;
+        }
+        .pay-period-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Overtime Pay Calculator</h1>
+    
+    <div class="container">
+        <div class="basic-info">
+            <label for="rate">Hourly Rate ($):</label>
+            <input type="number" id="rate" step="0.01" min="0" placeholder="Enter your hourly rate">
+            
+            <label for="otRate">Overtime Rate Multiplier:</label>
+            <select id="otRate">
+                <option value="1.5">1.5x (Time and a half)</option>
+                <option value="2">2x (Double time)</option>
+                <option value="custom">Custom</option>
+            </select>
+            
+            <div id="customRateDiv" style="display:none;">
+                <label for="customRateValue">Custom Overtime Multiplier:</label>
+                <input type="number" id="customRateValue" step="0.1" min="1" value="1.5">
+            </div>
+            
+            <label for="otThreshold">Overtime Threshold (Hours per Week):</label>
+            <input type="number" id="otThreshold" value="40" min="0" step="0.5">
+        </div>
+        
+        <div id="payPeriods">
+            <!-- Pay periods will be added here -->
+        </div>
+        
+        <button class="add-period-btn" onclick="addPayPeriod()">Add Biweekly Pay Period</button>
+        <button onclick="calculateResults()">Calculate Results</button>
+    </div>
+    
+    <div id="results" class="results">
+        <h2>Results</h2>
+        <div id="resultsContent"></div>
+    </div>
+    
+    <script>
+        let periodCounter = 0;
+        
+        // Initialize the calculator with one pay period
+        document.addEventListener('DOMContentLoaded', function() {
+            addPayPeriod();
+            
+            // Set up the custom rate option
+            document.getElementById('otRate').addEventListener('change', function() {
+                if (this.value === 'custom') {
+                    document.getElementById('customRateDiv').style.display = 'block';
+                } else {
+                    document.getElementById('customRateDiv').style.display = 'none';
+                }
+            });
+        });
+        
+        function addPayPeriod() {
+            periodCounter++;
+            
+            const payPeriodDiv = document.createElement('div');
+            payPeriodDiv.className = 'pay-period';
+            payPeriodDiv.id = `period-${periodCounter}`;
+            
+            payPeriodDiv.innerHTML = `
+                <div class="pay-period-header">
+                    <h3>Pay Period ${periodCounter}</h3>
+                    <button class="remove-period-btn" onclick="removePayPeriod('period-${periodCounter}')">Remove Period</button>
+                </div>
+                
+                <label for="period-${periodCounter}-start">Start Date:</label>
+                <input type="date" id="period-${periodCounter}-start">
+                
+                <label for="period-${periodCounter}-end">End Date:</label>
+                <input type="date" id="period-${periodCounter}-end">
+                
+                <label for="period-${periodCounter}-received">Total Pay Received ($):</label>
+                <input type="number" id="period-${periodCounter}-received" step="0.01" min="0" placeholder="Enter the actual amount paid">
+                
+                <h4>Days Worked:</h4>
+                <div id="period-${periodCounter}-days" class="days-container">
+                    <!-- Days will be added here -->
+                </div>
+                
+                <button class="add-day-btn" onclick="addDay('period-${periodCounter}-days')">Add Day</button>
+            `;
+            
+            document.getElementById('payPeriods').appendChild(payPeriodDiv);
+            
+            // Add initial day
+            addDay(`period-${periodCounter}-days`);
+        }
+        
+        function removePayPeriod(periodId) {
+            const period = document.getElementById(periodId);
+            if (period) {
+                period.remove();
+            }
+            
+            // If all periods are removed, add one back
+            if (document.querySelectorAll('.pay-period').length === 0) {
+                addPayPeriod();
+            }
+        }
+        
+        function addDay(periodDaysId) {
+            const dayId = Date.now(); // Unique ID for the day
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'day-entry';
+            dayDiv.id = `day-${dayId}`;
+            
+            dayDiv.innerHTML = `
+                <label for="day-${dayId}-date">Date:</label>
+                <input type="date" id="day-${dayId}-date">
+                
+                <label for="day-${dayId}-hours">Hours Worked:</label>
+                <input type="number" id="day-${dayId}-hours" step="0.25" min="0" placeholder="Regular hours worked">
+                
+                <label for="day-${dayId}-drive">Unpaid Drive Time (Hours):</label>
+                <input type="number" id="day-${dayId}-drive" step="0.25" min="0" placeholder="Unpaid drive time" value="0">
+                
+                <button class="remove-day-btn" onclick="removeDay('day-${dayId}')">Remove Day</button>
+            `;
+            
+            document.getElementById(periodDaysId).appendChild(dayDiv);
+        }
+        
+        function removeDay(dayId) {
+            const day = document.getElementById(dayId);
+            if (day) {
+                day.remove();
+            }
+        }
+        
+        function calculateResults() {
+            const rate = parseFloat(document.getElementById('rate').value);
+            const otThreshold = parseFloat(document.getElementById('otThreshold').value);
+            
+            // Get overtime rate
+            let otRateMultiplier;
+            const otRateSelect = document.getElementById('otRate');
+            if (otRateSelect.value === 'custom') {
+                otRateMultiplier = parseFloat(document.getElementById('customRateValue').value);
+            } else {
+                otRateMultiplier = parseFloat(otRateSelect.value);
+            }
+            
+            if (isNaN(rate) || rate <= 0) {
+                alert('Please enter a valid hourly rate.');
+                return;
+            }
+            
+            if (isNaN(otThreshold) || otThreshold < 0) {
+                alert('Please enter a valid overtime threshold.');
+                return;
+            }
+            
+            const periods = document.querySelectorAll('.pay-period');
+            const results = [];
+            let grandTotalShouldHavePaid = 0;
+            let grandTotalActuallyPaid = 0;
+            
+            periods.forEach(period => {
+                const periodId = period.id;
+                const payReceived = parseFloat(document.getElementById(`${periodId}-received`).value) || 0;
+                const startDate = document.getElementById(`${periodId}-start`).value;
+                const endDate = document.getElementById(`${periodId}-end`).value;
+                
+                const dayEntries = period.querySelectorAll('.day-entry');
+                const periodDays = [];
+                
+                // Create day entries for each day
+                dayEntries.forEach(day => {
+                    const dayId = day.id;
+                    const date = document.getElementById(`${dayId}-date`).value;
+                    const hours = parseFloat(document.getElementById(`${dayId}-hours`).value) || 0;
+                    const driveTime = parseFloat(document.getElementById(`${dayId}-drive`).value) || 0;
+                    
+                    if (hours > 0 || driveTime > 0) {
+                        periodDays.push({
+                            date,
+                            hours,
+                            driveTime,
+                            totalHours: hours + driveTime
+                        });
+                    }
+                });
+                
+                // Group days by week for overtime calculation
+                const weeklyHours = groupByWeek(periodDays);
+                
+                // Calculate pay details
+                let regularHours = 0;
+                let overtimeHours = 0;
+                let regularPay = 0;
+                let overtimePay = 0;
+                let totalPay = 0;
+                
+                // Calculate for each week
+                weeklyHours.forEach(week => {
+                    const weekTotalHours = week.reduce((sum, day) => sum + day.totalHours, 0);
+                    const weekRegularHours = Math.min(weekTotalHours, otThreshold);
+                    const weekOvertimeHours = Math.max(0, weekTotalHours - otThreshold);
+                    
+                    regularHours += weekRegularHours;
+                    overtimeHours += weekOvertimeHours;
+                    
+                    regularPay += weekRegularHours * rate;
+                    overtimePay += weekOvertimeHours * rate * otRateMultiplier;
+                });
+                
+                totalPay = regularPay + overtimePay;
+                const payDiscrepancy = totalPay - payReceived;
+                
+                // Save period results
+                results.push({
+                    periodId,
+                    startDate,
+                    endDate,
+                    regularHours,
+                    overtimeHours,
+                    regularPay,
+                    overtimePay,
+                    totalPay,
+                    payReceived,
+                    payDiscrepancy
+                });
+                
+                grandTotalShouldHavePaid += totalPay;
+                grandTotalActuallyPaid += payReceived;
+            });
+            
+            // Display results
+            displayResults(results, rate, otRateMultiplier, grandTotalShouldHavePaid, grandTotalActuallyPaid);
+        }
+        
+        function groupByWeek(days) {
+            // Sort days by date
+            days.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            const weeks = [];
+            let currentWeek = [];
+            let currentWeekStart = null;
+            
+            days.forEach(day => {
+                if (!day.date) return;
+                
+                const dayDate = new Date(day.date);
+                
+                if (!currentWeekStart) {
+                    // First day, start a new week
+                    currentWeekStart = new Date(dayDate);
+                    currentWeekStart.setDate(dayDate.getDate() - dayDate.getDay()); // Set to the beginning of the week (Sunday)
+                    currentWeek.push(day);
+                } else {
+                    const nextWeekStart = new Date(currentWeekStart);
+                    nextWeekStart.setDate(currentWeekStart.getDate() + 7);
+                    
+                    if (dayDate >= nextWeekStart) {
+                        // Day is in a new week
+                        if (currentWeek.length > 0) {
+                            weeks.push(currentWeek);
+                        }
+                        currentWeek = [day];
+                        currentWeekStart = new Date(nextWeekStart);
+                    } else {
+                        // Day is in the current week
+                        currentWeek.push(day);
+                    }
+                }
+            });
+            
+            // Don't forget to add the last week
+            if (currentWeek.length > 0) {
+                weeks.push(currentWeek);
+            }
+            
+            return weeks;
+        }
+        
+        function displayResults(results, rate, otRateMultiplier, grandTotalShouldHavePaid, grandTotalActuallyPaid) {
+            const resultsDiv = document.getElementById('results');
+            const resultsContent = document.getElementById('resultsContent');
+            const grandTotalDiscrepancy = grandTotalShouldHavePaid - grandTotalActuallyPaid;
+            
+            let html = `
+                <p><strong>Base Hourly Rate:</strong> $${rate.toFixed(2)}</p>
+                <p><strong>Overtime Rate:</strong> $${(rate * otRateMultiplier).toFixed(2)} (${otRateMultiplier}x)</p>
+                
+                <h3>Pay Period Details:</h3>
+            `;
+            
+            results.forEach(result => {
+                const periodName = result.periodId.replace('period-', 'Pay Period ');
+                const dateRange = result.startDate && result.endDate ? 
+                    `${formatDate(result.startDate)} to ${formatDate(result.endDate)}` : 
+                    'Date range not specified';
+                
+                const discrepancyClass = result.payDiscrepancy > 0 ? 'discrepancy' : 
+                                         result.payDiscrepancy < 0 ? 'positive-discrepancy' : '';
+                
+                html += `
+                    <h4>${periodName} (${dateRange})</h4>
+                    <table class="results-table">
+                        <tr>
+                            <th>Description</th>
+                            <th>Hours</th>
+                            <th>Amount ($)</th>
+                        </tr>
+                        <tr>
+                            <td>Regular Hours</td>
+                            <td>${result.regularHours.toFixed(2)}</td>
+                            <td>$${result.regularPay.toFixed(2)}</td>
+                        </tr>
+                        <tr>
+                            <td>Overtime Hours</td>
+                            <td>${result.overtimeHours.toFixed(2)}</td>
+                            <td>$${result.overtimePay.toFixed(2)}</td>
+                        </tr>
+                        <tr class="totals">
+                            <td>Total You Should Have Been Paid</td>
+                            <td>${(result.regularHours + result.overtimeHours).toFixed(2)}</td>
+                            <td>$${result.totalPay.toFixed(2)}</td>
+                        </tr>
+                        <tr>
+                            <td>Total Actually Paid</td>
+                            <td>-</td>
+                            <td>$${result.payReceived.toFixed(2)}</td>
+                        </tr>
+                        <tr class="${discrepancyClass}">
+                            <td>Discrepancy</td>
+                            <td>-</td>
+                            <td>$${result.payDiscrepancy.toFixed(2)}</td>
+                        </tr>
+                    </table>
+                `;
+            });
+            
+            // Add grand total
+            const grandDiscrepancyClass = grandTotalDiscrepancy > 0 ? 'discrepancy' : 
+                                         grandTotalDiscrepancy < 0 ? 'positive-discrepancy' : '';
+            
+            html += `
+                <h3>Grand Total</h3>
+                <table class="results-table">
+                    <tr>
+                        <th>Description</th>
+                        <th>Amount ($)</th>
+                    </tr>
+                    <tr>
+                        <td>Total You Should Have Been Paid</td>
+                        <td>$${grandTotalShouldHavePaid.toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                        <td>Total Actually Paid</td>
+                        <td>$${grandTotalActuallyPaid.toFixed(2)}</td>
+                    </tr>
+                    <tr class="${grandDiscrepancyClass}">
+                        <td>Total Discrepancy</td>
+                        <td>$${grandTotalDiscrepancy.toFixed(2)}</td>
+                    </tr>
+                </table>
+                
+                <p><strong>Note:</strong> 
+                    ${grandTotalDiscrepancy > 0 ? 
+                        `You may be underpaid by $${grandTotalDiscrepancy.toFixed(2)}.` : 
+                        grandTotalDiscrepancy < 0 ? 
+                        `You may be overpaid by $${Math.abs(grandTotalDiscrepancy).toFixed(2)}.` : 
+                        'Your payment appears to be correct.'}
+                </p>
+                <p>All calculations include unpaid drive time in the total hours worked.</p>
+            `;
+            
+            resultsContent.innerHTML = html;
+            resultsDiv.style.display = 'block';
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString();
+        }
+    </script>
+</body>
+</html>
