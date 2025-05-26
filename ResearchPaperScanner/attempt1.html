@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Research Paper Scanner</title>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script> unsure of this make sure this is adequete and not sketchy -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .input-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 2px dashed #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .input-section:hover {
+            border-color: #4facfe;
+            background: #f0f8ff;
+        }
+
+        .url-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s ease;
+        }
+
+        .url-input:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-weight: 500;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .papers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .paper-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid #e9ecef;
+        }
+
+        .paper-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .paper-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+        }
+
+        .paper-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            line-height: 1.4;
+        }
+
+        .paper-url {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            word-break: break-all;
+        }
+
+        .paper-body {
+            padding: 20px;
+        }
+
+        .paper-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .paper-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            background: #28a745;
+        }
+
+        .btn-small.delete {
+            background: #dc3545;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .file-input-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 PDF Research Scanner</h1>
+            <p>Scan, store, and manage research papers with ease</p>
+        </div>
+
+        <div class="main-content">
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalPapers">0</div>
+                    <div class="stat-label">Total Papers</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <div class="stat-number" id="totalSize">0 MB</div>
+                    <div class="stat-label">Total Size</div>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <h3 style="margin-bottom: 20px; color: #333;">📥 Add New Paper</h3>
+                
+                <input type="text" id="pdfUrl" class="url-input" placeholder="Enter PDF URL (e.g., https://arxiv.org/pdf/xxxx.pdf)">
+                
+                <div class="file-input-container">
+                    <input type="file" id="pdfFile" class="file-input" accept=".pdf" multiple>
+                    <label for="pdfFile" class="file-input-label">📁 Or Upload PDF Files</label>
+                </div>
+                
+                <button onclick="scanPDF()" class="btn" id="scanBtn">🔍 Scan PDF from URL</button>
+                <button onclick="clearAll()" class="btn" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);">🗑️ Clear All</button>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Processing PDF...</p>
+            </div>
+
+            <div class="status" id="status"></div>
+
+            <div class="papers-grid" id="papersGrid"></div>
+        </div>
+    </div>
+
+    <script>
+        let storedPapers = JSON.parse(localStorage.getItem('researchPapers') || '[]');
+        
+        function updateStats() {
+            const totalPapers = storedPapers.length;
+            const totalSize = storedPapers.reduce((sum, paper) => sum + (paper.size || 0), 0);
+            
+            document.getElementById('totalPapers').textContent = totalPapers;
+            document.getElementById('totalSize').textContent = (totalSize / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 5000);
+        }
+
+        function showLoading(show = true) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            document.getElementById('scanBtn').disabled = show;
+        }
+
+        async function scanPDF() {
+            const url = document.getElementById('pdfUrl').value.trim();
+            
+            if (!url) {
+                showStatus('Please enter a PDF URL', 'error');
+                return;
+            }
+
+            if (!url.toLowerCase().includes('.pdf')) {
+                showStatus('Please enter a valid PDF URL', 'error');
+                return;
+            }
+
+            showLoading(true);
+            
+            try {
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const arrayBuffer = await response.arrayBuffer();
+                const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+                
+                const pageCount = pdfDoc.getPageCount();
+                const title = extractTitleFromUrl(url);
+                
+                const paper = {
+                    id: Date.now(),
+                    title: title,
+                    url: url,
+                    pages: pageCount,
+                    size: arrayBuffer.byteLength,
+                    dateAdded: new Date().toISOString(),
+                    data: Array.from(new Uint8Array(arrayBuffer))
+                };
+                
+                storedPapers.push(paper);
+                localStorage.setItem('researchPapers', JSON.stringify(storedPapers));
+                
+                showStatus(`Successfully scanned "${title}" (${pageCount} pages)`, 'success');
+                document.getElementById('pdfUrl').value = '';
+                
+                renderPapers();
+                updateStats();
+                
+            } catch (error) {
+                console.error('Error scanning PDF:', error);
+                showStatus(`Error scanning PDF: ${error.message}`, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function extractTitleFromUrl(url) {
+            const parts = url.split('/');
+            const filename = parts[parts.length - 1];
+            return filename.replace('.pdf', '').replace(/[_-]/g, ' ');
+        }
+
+        document.getElementById('pdfFile').addEventListener('change', async function(e) {
+            const files = Array.from(e.target.files);
+            
+            if (files.length === 0) return;
+            
+            showLoading(true);
+            
+            try {
+                for (const file of files) {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+                    
+                    const pageCount = pdfDoc.getPageCount();
+                    const title = file.name.replace('.pdf', '');
+                    
+                    const paper = {
+                        id: Date.now() + Math.random(),
+                        title: title,
+                        url: 'Local file: ' + file.name,
+                        pages: pageCount,
+                        size: arrayBuffer.byteLength,
+                        dateAdded: new Date().toISOString(),
+                        data: Array.from(new Uint8Array(arrayBuffer))
+                    };
+                    
+                    storedPapers.push(paper);
+                }
+                
+                localStorage.setItem('researchPapers', JSON.stringify(storedPapers));
+                showStatus(`Successfully added ${files.length} PDF(s)`, 'success');
+                
+                renderPapers();
+                updateStats();
+                
+            } catch (error) {
+                console.error('Error processing files:', error);
+                showStatus(`Error processing files: ${error.message}`, 'error');
+            } finally {
+                showLoading(false);
+                e.target.value = '';
+            }
+        });
+
+        function downloadPaper(paperId) {
+            const paper = storedPapers.find(p => p.id === paperId);
+            if (!paper) return;
+            
+            const uint8Array = new Uint8Array(paper.data);
+            const blob = new Blob([uint8Array], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${paper.title}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showStatus(`Downloaded "${paper.title}"`, 'success');
+        }
+
+        function deletePaper(paperId) {
+            if (!confirm('Are you sure you want to delete this paper?')) return;
+            
+            storedPapers = storedPapers.filter(p => p.id !== paperId);
+            localStorage.setItem('researchPapers', JSON.stringify(storedPapers));
+            
+            renderPapers();
+            updateStats();
+            showStatus('Paper deleted successfully', 'success');
+        }
+
+        function clearAll() {
+            if (!confirm('Are you sure you want to delete all papers? This cannot be undone.')) return;
+            
+            storedPapers = [];
+            localStorage.removeItem('researchPapers');
+            
+            renderPapers();
+            updateStats();
+            showStatus('All papers cleared', 'success');
+        }
+
+        function renderPapers() {
+            const grid = document.getElementById('papersGrid');
+            
+            if (storedPapers.length === 0) {
+                grid.innerHTML = '<div style="text-align: center; padding: 40px; color: #6c757d; font-size: 1.1rem;">📄 No papers stored yet. Start by adding a PDF!</div>';
+                return;
+            }
+            
+            grid.innerHTML = storedPapers.map(paper => `
+                <div class="paper-card">
+                    <div class="paper-header">
+                        <div class="paper-title">${paper.title}</div>
+                        <div class="paper-url">${paper.url}</div>
+                    </div>
+                    <div class="paper-body">
+                        <div class="paper-info">
+                            <span>📄 ${paper.pages} pages</span>
+                            <span>💾 ${(paper.size / (1024 * 1024)).toFixed(1)} MB</span>
+                        </div>
+                        <div class="paper-info">
+                            <span>📅 ${new Date(paper.dateAdded).toLocaleDateString()}</span>
+                        </div>
+                        <div class="paper-actions">
+                            <button onclick="downloadPaper(${paper.id})" class="btn btn-small">⬇️ Download</button>
+                            <button onclick="deletePaper(${paper.id})" class="btn btn-small delete">🗑️ Delete</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Handle Enter key in URL input
+        document.getElementById('pdfUrl').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                scanPDF();
+            }
+        });
+
+        // Initialize
+        renderPapers();
+        updateStats();
+    </script>
+</body>
+</html>

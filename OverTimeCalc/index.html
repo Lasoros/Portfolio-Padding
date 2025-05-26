@@ -260,10 +260,10 @@
                 <input type="date" id="day-${dayId}-date">
                 
                 <label for="day-${dayId}-hours">Hours Worked:</label>
-                <input type="number" id="day-${dayId}-hours" step="0.25" min="0" placeholder="Regular hours worked">
+                <input type="number" id="day-${dayId}-hours" step="0.25" min="0" placeholder="Regular hours worked" value="8">
                 
                 <label for="day-${dayId}-drive">Unpaid Drive Time (Hours):</label>
-                <input type="number" id="day-${dayId}-drive" step="0.25" min="0" placeholder="Unpaid drive time" value="0">
+                <input type="number" id="day-${dayId}-drive" step="0.25" min="0" placeholder="Unpaid drive time" value="1.5">
                 
                 <button class="remove-day-btn" onclick="removeDay('day-${dayId}')">Remove Day</button>
             `;

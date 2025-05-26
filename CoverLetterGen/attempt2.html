@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cover Letter Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .form-section, .preview-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-align: center;
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .cover-letter {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            font-family: 'Times New Roman', serif;
+            line-height: 1.6;
+            color: #333;
+            min-height: 600px;
+        }
+
+        .header {
+            text-align: right;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 20px;
+        }
+
+        .header h3 {
+            font-size: 1.4rem;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .date-company {
+            margin: 30px 0;
+            text-align: left;
+        }
+
+        .content {
+            text-align: justify;
+        }
+
+        .content p {
+            margin-bottom: 15px;
+        }
+
+        .signature {
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .form-section, .preview-section {
+                padding: 20px;
+            }
+        }
+
+        .placeholder-text {
+            color: #a0aec0;
+            font-style: italic;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .required {
+            color: #e53e3e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Professional Cover Letter Generator</h1>
+        
+        <div class="form-section">
+            <h2>Personal Information</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="firstName">First Name <span class="required">*</span>:</label>
+                    <input type="text" id="firstName" placeholder="John">
+                </div>
+                <div class="form-group">
+                    <label for="lastName">Last Name <span class="required">*</span>:</label>
+                    <input type="text" id="lastName" placeholder="Doe">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email <span class="required">*</span>:</label>
+                <input type="email" id="email" placeholder="john.doe@email.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">Phone:</label>
+                <input type="tel" id="phone" placeholder="(555) 123-4567">
+            </div>
+            
+            <div class="form-group">
+                <label for="address">Address:</label>
+                <input type="text" id="address" placeholder="123 Main St, City, State 12345">
+            </div>
+            
+            <h2 style="margin-top: 30px;">Job Details</h2>
+            <div class="form-group">
+                <label for="companyName">Company Name <span class="required">*</span>:</label>
+                <input type="text" id="companyName" placeholder="ABC Corporation">
+            </div>
+            
+            <div class="form-group">
+                <label for="positionTitle">Position Title <span class="required">*</span>:</label>
+                <input type="text" id="positionTitle" placeholder="Software Developer">
+            </div>
+            
+            <div class="form-group">
+                <label for="hiringManager">Hiring Manager (optional):</label>
+                <input type="text" id="hiringManager" placeholder="Ms. Jane Smith">
+            </div>
+            
+            <div class="form-group">
+                <label for="jobDescription">Job Description:</label>
+                <textarea id="jobDescription" placeholder="Paste the job description here. Include key requirements, responsibilities, and qualifications..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="experience">Your Relevant Experience/Skills:</label>
+                <textarea id="experience" placeholder="Describe your relevant experience, skills, and achievements that match this position..."></textarea>
+            </div>
+            
+            <button onclick="generateCoverLetter()" id="generateBtn">Generate Cover Letter</button>
+        </div>
+        
+        <div class="preview-section">
+            <h2>Cover Letter Preview</h2>
+            <div class="cover-letter" id="coverLetterPreview">
+                <div class="placeholder-text">
+                    Fill out the required fields and click "Generate Cover Letter" to see your personalized cover letter
+                </div>
+            </div>
+            <button onclick="downloadCoverLetter()" style="margin-top: 20px; display: none;" id="downloadBtn">Download as Text File</button>
+        </div>
+    </div>
+
+    <script>
+        function generateCoverLetter() {
+            try {
+                // Get form values
+                const firstName = document.getElementById('firstName').value.trim();
+                const lastName = document.getElementById('lastName').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const phone = document.getElementById('phone').value.trim();
+                const address = document.getElementById('address').value.trim();
+                const companyName = document.getElementById('companyName').value.trim();
+                const positionTitle = document.getElementById('positionTitle').value.trim();
+                const hiringManager = document.getElementById('hiringManager').value.trim();
+                const jobDescription = document.getElementById('jobDescription').value.trim();
+                const experience = document.getElementById('experience').value.trim();
+
+                // Validate required fields
+                if (!firstName || !lastName || !email || !companyName || !positionTitle) {
+                    alert('Please fill in all required fields marked with *');
+                    return;
+                }
+
+                // Disable button during generation
+                const generateBtn = document.getElementById('generateBtn');
+                generateBtn.disabled = true;
+                generateBtn.textContent = 'Generating...';
+
+                // Get current date
+                const currentDate = new Date().toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+
+                // Create greeting
+                const greeting = hiringManager ? `Dear ${hiringManager},` : 'Dear Hiring Manager,';
+
+                // Generate cover letter content
+                const coverLetterHTML = createCoverLetterHTML({
+                    firstName,
+                    lastName,
+                    email,
+                    phone,
+                    address,
+                    companyName,
+                    positionTitle,
+                    hiringManager,
+                    jobDescription,
+                    experience,
+                    currentDate,
+                    greeting
+                });
+
+                // Update preview
+                document.getElementById('coverLetterPreview').innerHTML = coverLetterHTML;
+                document.getElementById('downloadBtn').style.display = 'block';
+
+            } catch (error) {
+                console.error('Error generating cover letter:', error);
+                alert('An error occurred while generating the cover letter. Please try again.');
+            } finally {
+                // Re-enable button
+                const generateBtn = document.getElementById('generateBtn');
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generate Cover Letter';
+            }
+        }
+
+        function createCoverLetterHTML(data) {
+            const {
+                firstName, lastName, email, phone, address,
+                companyName, positionTitle, hiringManager,
+                jobDescription, experience, currentDate, greeting
+            } = data;
+
+            // Create header section
+            const headerHTML = `
+                <div class="header">
+                    <h3>${firstName} ${lastName}</h3>
+                    <div>${email}</div>
+                    ${phone ? `<div>${phone}</div>` : ''}
+                    ${address ? `<div>${address}</div>` : ''}
+                </div>
+            `;
+
+            // Create date and company section
+            const dateCompanyHTML = `
+                <div class="date-company">
+                    <div style="margin-bottom: 20px;">${currentDate}</div>
+                    <div><strong>${companyName}</strong></div>
+                    ${hiringManager ? `<div>Attention: ${hiringManager}</div>` : ''}
+                </div>
+            `;
+
+            // Generate tailored content
+            const bodyContent = generateBodyContent(jobDescription, experience, positionTitle, companyName);
+
+            // Create content section
+            const contentHTML = `
+                <div class="content">
+                    <p>${greeting}</p>
+                    ${bodyContent}
+                    <p>Thank you for considering my application. I look forward to the opportunity to discuss how my skills and enthusiasm can contribute to ${companyName}'s continued success. I am available for an interview at your convenience.</p>
+                </div>
+            `;
+
+            // Create signature section
+            const signatureHTML = `
+                <div class="signature">
+                    <p>Sincerely,</p>
+                    <p><strong>${firstName} ${lastName}</strong></p>
+                </div>
+            `;
+
+            return headerHTML + dateCompanyHTML + contentHTML + signatureHTML;
+        }
+
+        function generateBodyContent(jobDescription, experience, positionTitle, companyName) {
+            let content = `<p>I am writing to express my strong interest in the ${positionTitle} position at ${companyName}.</p>`;
+
+            if (jobDescription && experience) {
+                // Simple keyword matching for skills
+                const jobKeywords = extractSimpleKeywords(jobDescription.toLowerCase());
+                const expKeywords = extractSimpleKeywords(experience.toLowerCase());
+                
+                const matchingSkills = jobKeywords.filter(skill => 
+                    expKeywords.includes(skill)
+                ).slice(0, 3);
+
+                if (matchingSkills.length > 0) {
+                    content += `<p>Your job posting particularly interests me because of my experience with ${matchingSkills.join(', ')}. Based on the requirements outlined in your job description, I believe my background aligns well with what you're seeking.</p>`;
+                }
+
+                content += `<p>${experience}</p>`;
+                content += `<p>I am particularly drawn to ${companyName} and excited about the opportunity to contribute to your team's success in the ${positionTitle} role.</p>`;
+                
+            } else if (experience) {
+                content += `<p>${experience}</p>`;
+                content += `<p>I am excited about the opportunity to bring my skills and experience to ${companyName} and contribute to your team's success.</p>`;
+                
+            } else {
+                content += `<p>With my background and passion for this field, I am confident that I would be a valuable addition to your team. I am eager to contribute to ${companyName}'s mission and help drive continued growth and success.</p>`;
+            }
+
+            return content;
+        }
+
+        function extractSimpleKeywords(text) {
+            const commonSkills = [
+                'javascript', 'python', 'java', 'react', 'node', 'sql', 'html', 'css',
+                'management', 'leadership', 'communication', 'teamwork', 'analysis',
+                'design', 'development', 'testing', 'agile', 'marketing', 'sales'
+            ];
+
+            return commonSkills.filter(skill => text.includes(skill));
+        }
+
+        function downloadCoverLetter() {
+            try {
+                const coverLetterElement = document.getElementById('coverLetterPreview');
+                const content = coverLetterElement.innerText || coverLetterElement.textContent;
+                
+                const blob = new Blob([content], { type: 'text/plain' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'cover_letter.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error('Error downloading cover letter:', error);
+                alert('Error downloading file. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>

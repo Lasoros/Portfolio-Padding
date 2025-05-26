@@ -1,0 +1,996 @@
+import { useState, useEffect } from 'react';
+
+// Main App Component
+export default function CompTIATestPrep() {
+  const [activeSection, setActiveSection] = useState('home');
+  const [activeExam, setActiveExam] = useState('core1');
+  const [activeTopic, setActiveTopic] = useState(null);
+  const [quizStarted, setQuizStarted] = useState(false);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [score, setScore] = useState(0);
+  const [showResults, setShowResults] = useState(false);
+  const [selectedAnswers, setSelectedAnswers] = useState({});
+  const [quizQuestions, setQuizQuestions] = useState([]);
+  const [flashcardIndex, setFlashcardIndex] = useState(0);
+  const [flashcardFlipped, setFlashcardFlipped] = useState(false);
+  const [studyMode, setStudyMode] = useState('quiz'); // 'quiz' or 'flashcards'
+
+  // Navigation Functions
+  const navigateTo = (section) => {
+    setActiveSection(section);
+    setQuizStarted(false);
+    setShowResults(false);
+  };
+
+  const selectExam = (exam) => {
+    setActiveExam(exam);
+    setActiveTopic(null);
+  };
+
+  const selectTopic = (topic) => {
+    setActiveTopic(topic);
+  };
+
+  // Quiz Functions
+  const startQuiz = () => {
+    setQuizStarted(true);
+    setCurrentQuestionIndex(0);
+    setScore(0);
+    setShowResults(false);
+    setSelectedAnswers({});
+    
+    // Get questions based on selected exam and topic
+    if (activeTopic) {
+      setQuizQuestions(getQuestionsByTopic(activeExam, activeTopic));
+    } else {
+      setQuizQuestions(getRandomQuestionsByExam(activeExam, 10));
+    }
+  };
+
+  const handleAnswerSelect = (questionIndex, answerIndex) => {
+    setSelectedAnswers({
+      ...selectedAnswers,
+      [questionIndex]: answerIndex
+    });
+  };
+
+  const submitQuiz = () => {
+    let newScore = 0;
+    
+    // Calculate score
+    quizQuestions.forEach((question, index) => {
+      if (selectedAnswers[index] === question.correctAnswer) {
+        newScore++;
+      }
+    });
+    
+    setScore(newScore);
+    setShowResults(true);
+  };
+
+  const nextQuestion = () => {
+    if (currentQuestionIndex < quizQuestions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    } else {
+      submitQuiz();
+    }
+  };
+
+  const prevQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+    }
+  };
+
+  // Flashcard Functions
+  const nextFlashcard = () => {
+    const topic = activeTopic ? activeTopic : 'random';
+    const deck = getFlashcardsByTopic(activeExam, topic);
+    setFlashcardFlipped(false);
+    setFlashcardIndex((flashcardIndex + 1) % deck.length);
+  };
+
+  const prevFlashcard = () => {
+    const topic = activeTopic ? activeTopic : 'random';
+    const deck = getFlashcardsByTopic(activeExam, topic);
+    setFlashcardFlipped(false);
+    setFlashcardIndex((flashcardIndex - 1 + deck.length) % deck.length);
+  };
+
+  const flipFlashcard = () => {
+    setFlashcardFlipped(!flashcardFlipped);
+  };
+
+  // EXAM DATA
+  // Core 1 Topics
+  const core1Topics = [
+    'Mobile Devices',
+    'Networking',
+    'Hardware',
+    'Virtualization & Cloud Computing',
+    'Troubleshooting'
+  ];
+
+  // Core 2 Topics
+  const core2Topics = [
+    'Operating Systems',
+    'Security',
+    'Software Troubleshooting',
+    'Operational Procedures'
+  ];
+
+  // Sample Quiz Questions Database
+  const core1Questions = [
+    {
+      topic: 'Mobile Devices',
+      question: 'Which of the following display types uses organic compounds that emit light when an electric current is applied?',
+      options: ['LCD', 'OLED', 'LED-backlit', 'Plasma'],
+      correctAnswer: 1,
+      explanation: 'OLED (Organic Light Emitting Diode) uses organic compounds that emit light when current is applied. This allows for thinner displays with better contrast and power efficiency.'
+    },
+    {
+      topic: 'Mobile Devices',
+      question: 'What is the purpose of an accelerometer in a mobile device?',
+      options: [
+        'To measure battery charging speed',
+        'To detect orientation and motion',
+        'To enhance cellular signal strength',
+        'To control CPU clock speed'
+      ],
+      correctAnswer: 1,
+      explanation: 'An accelerometer detects changes in velocity and orientation, allowing devices to recognize movement, orientation changes, and gestures.'
+    },
+    {
+      topic: 'Networking',
+      question: 'Which of the following wireless standards operates in both the 2.4 GHz and 5 GHz bands with a maximum theoretical throughput of 6.9 Gbps?',
+      options: ['802.11n', '802.11ac', '802.11ax', '802.11g'],
+      correctAnswer: 2,
+      explanation: '802.11ax (Wi-Fi 6) operates in both 2.4 GHz and 5 GHz bands and offers theoretical throughput up to 6.9 Gbps.'
+    },
+    {
+      topic: 'Networking',
+      question: 'What is the maximum data transfer rate of USB 3.1 Gen 2?',
+      options: ['5 Gbps', '10 Gbps', '20 Gbps', '40 Gbps'],
+      correctAnswer: 1,
+      explanation: 'USB 3.1 Gen 2 has a maximum transfer rate of 10 Gbps, which is twice the speed of USB 3.0/USB 3.1 Gen 1.'
+    },
+    {
+      topic: 'Hardware',
+      question: 'What is the purpose of thermal paste in a computer system?',
+      options: [
+        'To act as an adhesive for the CPU',
+        'To improve heat transfer between the CPU and heatsink',
+        'To protect the CPU from static electricity',
+        'To insulate the CPU from excess heat'
+      ],
+      correctAnswer: 1,
+      explanation: 'Thermal paste fills microscopic imperfections between the CPU and heatsink, improving heat transfer efficiency and preventing overheating.'
+    },
+    {
+      topic: 'Hardware',
+      question: 'Which of the following RAM types is used in most current desktop systems?',
+      options: ['DDR3', 'DDR4', 'DDR5', 'SDRAM'],
+      correctAnswer: 1,
+      explanation: 'DDR4 is the most commonly used RAM type in current desktop systems, though DDR5 is becoming more prevalent in newer systems.'
+    },
+    {
+      topic: 'Virtualization & Cloud Computing',
+      question: 'Which cloud service model provides virtual machines, storage, and networks, but requires the customer to manage the operating systems and applications?',
+      options: ['SaaS', 'PaaS', 'IaaS', 'XaaS'],
+      correctAnswer: 2,
+      explanation: 'Infrastructure as a Service (IaaS) provides virtualized computing resources over the internet, but customers manage operating systems, applications, and data.'
+    },
+    {
+      topic: 'Virtualization & Cloud Computing',
+      question: 'What is the primary purpose of a hypervisor?',
+      options: [
+        'To accelerate 3D graphics processing',
+        'To manage multiple virtual machines on a single hardware system',
+        'To optimize network traffic between servers',
+        'To compress data for cloud storage'
+      ],
+      correctAnswer: 1,
+      explanation: 'A hypervisor creates and manages virtual machines (VMs), allowing multiple operating systems to share a single hardware host.'
+    },
+    {
+      topic: 'Troubleshooting',
+      question: 'A laptop is overheating frequently. Which of the following is the MOST likely cause?',
+      options: [
+        'Corrupt operating system',
+        'Dust-clogged cooling vents',
+        'Outdated device drivers',
+        'Insufficient RAM'
+      ],
+      correctAnswer: 1,
+      explanation: 'Dust and debris in cooling vents, fans, and heatsinks prevent proper airflow, causing components to overheat.'
+    },
+    {
+      topic: 'Troubleshooting',
+      question: 'A PC powers on but does not display video output. After checking cable connections, what should you try first?',
+      options: [
+        'Replace the motherboard',
+        'Reseat the RAM modules',
+        'Reinstall the operating system',
+        'Update the BIOS'
+      ],
+      correctAnswer: 1,
+      explanation: 'Improperly seated RAM is a common cause of a computer failing to boot properly. Reseating RAM is a simple troubleshooting step before attempting more complex solutions.'
+    }
+  ];
+
+  const core2Questions = [
+    {
+      topic: 'Operating Systems',
+      question: 'Which Windows command-line tool can be used to verify DNS resolution?',
+      options: ['ipconfig', 'ping', 'nslookup', 'tracert'],
+      correctAnswer: 2,
+      explanation: 'nslookup is used to query DNS servers and troubleshoot DNS resolution issues by looking up IP addresses for domain names.'
+    },
+    {
+      topic: 'Operating Systems',
+      question: 'Which bootable recovery option in Windows 10 allows you to restore the system to a previous state?',
+      options: [
+        'Command Prompt',
+        'System Restore',
+        'System Image Recovery',
+        'Startup Repair'
+      ],
+      correctAnswer: 1,
+      explanation: 'System Restore returns Windows system files and settings to a specified previous state (restore point) without affecting personal files.'
+    },
+    {
+      topic: 'Security',
+      question: 'Which of the following is a secure password management practice?',
+      options: [
+        'Using the same password for multiple accounts',
+        'Writing passwords down in a notebook',
+        'Using multi-factor authentication when available',
+        'Changing passwords only when required'
+      ],
+      correctAnswer: 2,
+      explanation: 'Multi-factor authentication adds an additional security layer by requiring something you know (password) and something you have (like a phone) or something you are (biometrics).'
+    },
+    {
+      topic: 'Security',
+      question: 'Which attack involves sending emails that appear to be from trusted entities to trick recipients into revealing sensitive information?',
+      options: ['DDoS attack', 'Man-in-the-middle attack', 'Phishing attack', 'Brute force attack'],
+      correctAnswer: 2,
+      explanation: 'Phishing attacks use deceptive emails, websites, or messages that mimic legitimate organizations to steal sensitive information like passwords or credit card details.'
+    },
+    {
+      topic: 'Software Troubleshooting',
+      question: 'A user reports that a Windows application crashes immediately after launching. Which of the following should you check FIRST?',
+      options: [
+        'Event Viewer logs',
+        'Registry entries',
+        'Recently installed updates or software',
+        'Hardware specifications'
+      ],
+      correctAnswer: 2,
+      explanation: 'Recent software changes, including updates to Windows or other applications, are common causes of application crashes and should be checked first.'
+    },
+    {
+      topic: 'Software Troubleshooting',
+      question: 'Which Windows tool would you use to disable startup programs?',
+      options: ['Device Manager', 'Task Manager', 'Control Panel', 'System Configuration'],
+      correctAnswer: 1,
+      explanation: 'Task Manager (Startup tab) allows users to disable applications that launch during Windows startup, which can improve boot time and system performance.'
+    },
+    {
+      topic: 'Operational Procedures',
+      question: 'Which of the following is the BEST action when disposing of a hard drive containing sensitive data?',
+      options: [
+        'Format the drive',
+        'Delete all files and empty the recycle bin',
+        'Use disk wiping software or physically destroy the drive',
+        'Reinstall the operating system'
+      ],
+      correctAnswer: 2,
+      explanation: 'Specialized disk wiping software that overwrites data multiple times or physical destruction are the only reliable methods to prevent data recovery from disposed drives.'
+    },
+    {
+      topic: 'Operational Procedures',
+      question: 'What type of documentation would contain step-by-step instructions for setting up a workstation?',
+      options: [
+        'Network diagram',
+        'Asset management report',
+        'Standard operating procedure',
+        'Incident report'
+      ],
+      correctAnswer: 2,
+      explanation: 'Standard operating procedures (SOPs) provide detailed, step-by-step instructions for routine operations like workstation setup or maintenance tasks.'
+    }
+  ];
+
+  // Flashcard Database
+  const core1Flashcards = [
+    {
+      topic: 'Mobile Devices',
+      term: 'BYOD',
+      definition: 'Bring Your Own Device - A policy that allows employees to use their personal devices for work purposes.'
+    },
+    {
+      topic: 'Mobile Devices',
+      term: 'OTG (On-The-Go)',
+      definition: 'A specification that allows mobile devices to act as a host, enabling them to connect directly to USB devices.'
+    },
+    {
+      topic: 'Networking',
+      term: 'DNS',
+      definition: 'Domain Name System - Translates domain names (like example.com) to IP addresses, allowing browsers to load internet resources.'
+    },
+    {
+      topic: 'Networking',
+      term: 'DHCP',
+      definition: 'Dynamic Host Configuration Protocol - Automatically assigns IP addresses and other network configuration parameters to devices on a network.'
+    },
+    {
+      topic: 'Hardware',
+      term: 'POST',
+      definition: 'Power-On Self-Test - A diagnostic testing sequence run by firmware when a computer powers on.'
+    },
+    {
+      topic: 'Hardware',
+      term: 'PCIe',
+      definition: 'Peripheral Component Interconnect Express - A high-speed serial computer expansion bus standard for connecting hardware devices to a computer.'
+    },
+    {
+      topic: 'Virtualization & Cloud Computing',
+      term: 'Hypervisor',
+      definition: 'Software that creates and runs virtual machines by separating the operating system and applications from the underlying computer hardware.'
+    },
+    {
+      topic: 'Virtualization & Cloud Computing',
+      term: 'SaaS',
+      definition: 'Software as a Service - A software licensing and delivery model where applications are provided over the internet on a subscription basis.'
+    },
+    {
+      topic: 'Troubleshooting',
+      term: 'BSOD',
+      definition: 'Blue Screen of Death - A Windows error screen displayed when the system encounters a critical error it cannot recover from.'
+    },
+    {
+      topic: 'Troubleshooting',
+      term: 'Bottleneck',
+      definition: 'A component or resource that limits the performance of the system. The slowest part that restricts overall system capability.'
+    }
+  ];
+
+  const core2Flashcards = [
+    {
+      topic: 'Operating Systems',
+      term: 'Registry',
+      definition: 'A hierarchical database in Windows that stores configuration settings and options for the operating system and applications.'
+    },
+    {
+      topic: 'Operating Systems',
+      term: 'UAC',
+      definition: 'User Account Control - A security feature in Windows that prevents unauthorized changes to the operating system by requiring administrator approval.'
+    },
+    {
+      topic: 'Security',
+      term: 'MFA',
+      definition: 'Multi-Factor Authentication - A security system that requires more than one method of authentication to verify a user\'s identity.'
+    },
+    {
+      topic: 'Security',
+      term: 'Zero-day vulnerability',
+      definition: 'A software security flaw that is unknown to those interested in mitigating the vulnerability, including the vendor.'
+    },
+    {
+      topic: 'Software Troubleshooting',
+      term: 'DLL',
+      definition: 'Dynamic Link Library - A type of file containing code and data that can be used by multiple programs simultaneously.'
+    },
+    {
+      topic: 'Software Troubleshooting',
+      term: 'SFC',
+      definition: 'System File Checker - A Windows utility that scans for and restores corrupted system files.'
+    },
+    {
+      topic: 'Operational Procedures',
+      term: 'Chain of custody',
+      definition: 'Documentation that shows who handled evidence, when they handled it, and what was done with it at each point.'
+    },
+    {
+      topic: 'Operational Procedures',
+      term: 'MSDS',
+      definition: 'Material Safety Data Sheet - A document containing information on potential hazards and how to safely handle a substance.'
+    }
+  ];
+
+  // Helper Functions to Get Questions and Flashcards
+  const getQuestionsByTopic = (exam, topic) => {
+    const questions = exam === 'core1' ? core1Questions : core2Questions;
+    return questions.filter(q => q.topic === topic);
+  };
+
+  const getRandomQuestionsByExam = (exam, count) => {
+    const questions = exam === 'core1' ? core1Questions : core2Questions;
+    const shuffled = [...questions].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, Math.min(count, questions.length));
+  };
+
+  const getFlashcardsByTopic = (exam, topic) => {
+    const flashcards = exam === 'core1' ? core1Flashcards : core2Flashcards;
+    if (topic === 'random') {
+      return flashcards;
+    }
+    return flashcards.filter(f => f.topic === topic);
+  };
+
+  // Calculate progress percentage for quiz
+  const progressPercentage = quizQuestions.length > 0 
+    ? ((currentQuestionIndex + 1) / quizQuestions.length) * 100 
+    : 0;
+
+  return (
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-blue-600 text-white p-4 shadow-md">
+        <div className="container mx-auto flex justify-between items-center">
+          <h1 className="text-2xl font-bold">CompTIA A+ Test Prep</h1>
+          <nav className="space-x-4">
+            <button 
+              onClick={() => navigateTo('home')}
+              className={`px-3 py-1 rounded ${activeSection === 'home' ? 'bg-white text-blue-600' : 'hover:bg-blue-700'}`}
+            >
+              Home
+            </button>
+            <button 
+              onClick={() => navigateTo('study')}
+              className={`px-3 py-1 rounded ${activeSection === 'study' ? 'bg-white text-blue-600' : 'hover:bg-blue-700'}`}
+            >
+              Study
+            </button>
+            <button 
+              onClick={() => navigateTo('resources')}
+              className={`px-3 py-1 rounded ${activeSection === 'resources' ? 'bg-white text-blue-600' : 'hover:bg-blue-700'}`}
+            >
+              Resources
+            </button>
+          </nav>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-grow container mx-auto p-4">
+        {/* Home Section */}
+        {activeSection === 'home' && (
+          <div className="text-center py-8">
+            <h2 className="text-3xl font-bold mb-4">Prepare for CompTIA A+ Certification</h2>
+            <p className="text-lg mb-8 max-w-2xl mx-auto">
+              Study for both Core 1 (220-1101) and Core 2 (220-1102) exams with practice questions, 
+              flashcards, and study resources.
+            </p>
+            
+            <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+              {/* Core 1 Card */}
+              <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                <h3 className="text-xl font-bold mb-2">Core 1 (220-1101)</h3>
+                <p className="mb-4">Mobile Devices, Networking, Hardware, Virtualization & Cloud Computing, Hardware & Network Troubleshooting</p>
+                <button 
+                  onClick={() => {
+                    selectExam('core1');
+                    navigateTo('study');
+                  }}
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                >
+                  Study Core 1
+                </button>
+              </div>
+              
+              {/* Core 2 Card */}
+              <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                <h3 className="text-xl font-bold mb-2">Core 2 (220-1102)</h3>
+                <p className="mb-4">Operating Systems, Security, Software Troubleshooting, Operational Procedures</p>
+                <button 
+                  onClick={() => {
+                    selectExam('core2');
+                    navigateTo('study');
+                  }}
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                >
+                  Study Core 2
+                </button>
+              </div>
+            </div>
+            
+            <div className="mt-12 bg-blue-50 p-6 rounded-lg border border-blue-200 max-w-4xl mx-auto">
+              <h3 className="text-xl font-bold mb-2">About CompTIA A+ Certification</h3>
+              <p className="mb-2">
+                CompTIA A+ is the industry standard for establishing a career in IT. The certification validates skills in:
+              </p>
+              <ul className="text-left list-disc pl-6 mb-4">
+                <li>Hardware and software troubleshooting</li>
+                <li>Networking</li>
+                <li>Operating systems</li>
+                <li>Security</li>
+                <li>Mobile devices</li>
+                <li>Virtualization and cloud computing</li>
+              </ul>
+              <p>
+                The certification requires passing two exams: Core 1 (220-1101) and Core 2 (220-1102).
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Study Section */}
+        {activeSection === 'study' && (
+          <div>
+            {/* Exam Selection */}
+            <div className="mb-6 bg-white p-4 rounded-lg shadow border border-gray-200">
+              <h2 className="text-2xl font-bold mb-4">Study Mode</h2>
+              <div className="flex space-x-4 mb-4">
+                <button 
+                  onClick={() => selectExam('core1')}
+                  className={`px-4 py-2 rounded-lg ${activeExam === 'core1' ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+                >
+                  Core 1 (220-1101)
+                </button>
+                <button 
+                  onClick={() => selectExam('core2')}
+                  className={`px-4 py-2 rounded-lg ${activeExam === 'core2' ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+                >
+                  Core 2 (220-1102)
+                </button>
+              </div>
+
+              {/* Topic Selection */}
+              <div className="mb-4">
+                <h3 className="font-bold mb-2">Select Topic:</h3>
+                <div className="flex flex-wrap gap-2">
+                  <button 
+                    onClick={() => selectTopic(null)}
+                    className={`px-3 py-1 text-sm rounded-full ${activeTopic === null ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+                  >
+                    All Topics
+                  </button>
+                  {(activeExam === 'core1' ? core1Topics : core2Topics).map((topic, index) => (
+                    <button 
+                      key={index}
+                      onClick={() => selectTopic(topic)}
+                      className={`px-3 py-1 text-sm rounded-full ${activeTopic === topic ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+                    >
+                      {topic}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Study Mode Selection */}
+              <div className="mb-4">
+                <h3 className="font-bold mb-2">Study Format:</h3>
+                <div className="flex space-x-4">
+                  <button 
+                    onClick={() => setStudyMode('quiz')}
+                    className={`px-4 py-2 rounded-lg ${studyMode === 'quiz' ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+                  >
+                    Practice Quiz
+                  </button>
+                  <button 
+                    onClick={() => setStudyMode('flashcards')}
+                    className={`px-4 py-2 rounded-lg ${studyMode === 'flashcards' ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+                  >
+                    Flashcards
+                  </button>
+                </div>
+              </div>
+
+              {/* Start Button */}
+              <button 
+                onClick={() => {
+                  if (studyMode === 'quiz') {
+                    startQuiz();
+                  } else {
+                    setFlashcardIndex(0);
+                    setFlashcardFlipped(false);
+                  }
+                }}
+                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              >
+                Start Studying
+              </button>
+            </div>
+
+            {/* Quiz Section */}
+            {studyMode === 'quiz' && quizStarted && !showResults && (
+              <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
+                {/* Progress Bar */}
+                <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+                  <div 
+                    className="bg-blue-600 h-2.5 rounded-full" 
+                    style={{ width: `${progressPercentage}%` }}
+                  ></div>
+                </div>
+                <p className="text-right text-sm text-gray-600 mb-4">
+                  Question {currentQuestionIndex + 1} of {quizQuestions.length}
+                </p>
+
+                {/* Question */}
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold mb-2">
+                    {quizQuestions[currentQuestionIndex]?.question}
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Topic: {quizQuestions[currentQuestionIndex]?.topic}
+                  </p>
+                </div>
+
+                {/* Answer Options */}
+                <div className="space-y-3 mb-8">
+                  {quizQuestions[currentQuestionIndex]?.options.map((option, index) => (
+                    <div 
+                      key={index}
+                      onClick={() => handleAnswerSelect(currentQuestionIndex, index)}
+                      className={`p-3 border rounded-lg cursor-pointer hover:bg-gray-50 ${
+                        selectedAnswers[currentQuestionIndex] === index 
+                          ? 'border-blue-500 bg-blue-50' 
+                          : 'border-gray-300'
+                      }`}
+                    >
+                      <span className="font-medium">{String.fromCharCode(65 + index)}.</span> {option}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Navigation Buttons */}
+                <div className="flex justify-between">
+                  <button 
+                    onClick={prevQuestion}
+                    disabled={currentQuestionIndex === 0}
+                    className={`px-4 py-2 rounded ${
+                      currentQuestionIndex === 0 
+                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                        : 'bg-gray-200 hover:bg-gray-300'
+                    }`}
+                  >
+                    Previous
+                  </button>
+                  <button 
+                    onClick={nextQuestion}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    {currentQuestionIndex < quizQuestions.length - 1 ? 'Next' : 'Finish Quiz'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Quiz Results */}
+            {studyMode === 'quiz' && showResults && (
+              <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
+                <h3 className="text-2xl font-bold mb-4 text-center">Quiz Results</h3>
+                <div className="text-center mb-6">
+                  <p className="text-4xl font-bold text-blue-600">
+                    {score} / {quizQuestions.length}
+                  </p>
+                  <p className="text-lg">
+                    ({Math.round((score / quizQuestions.length) * 100)}%)
+                  </p>
+                </div>
+
+                {/* Review Questions */}
+                <div className="space-y-8 mb-6">
+                  {quizQuestions.map((question, qIndex) => (
+                    <div key={qIndex} className="border-b pb-6">
+                      <p className="font-bold mb-2">
+                        {qIndex + 1}. {question.question}
+                      </p>
+                      
+                      {/* Answer Options with Correct/Incorrect Indicators */}
+                      <div className="space-y-2 mb-4">
+                        {question.options.map((option, aIndex) => (
+                          <div 
+                            key={aIndex}
+                            className={`p-2 rounded ${
+                              question.correctAnswer === aIndex
+                                ? 'bg-green-100 border border-green-400'
+                                : selectedAnswers[qIndex] === aIndex && selectedAnswers[qIndex] !== question.correctAnswer
+                                ? 'bg-red-100 border border-red-400'
+                                : 'bg-gray-50'
+                            }`}
+                          >
+                            <span>{String.fromCharCode(65 + aIndex)}.</span> {option}
+                            {question.correctAnswer === aIndex && (
+                              <span className="ml-2 text-green-600 font-medium">(Correct Answer)</span>
+                            )}
+                            {selectedAnswers[qIndex] === aIndex && selectedAnswers[qIndex] !== question.correctAnswer && (
+                              <span className="ml-2 text-red-600 font-medium">(Your Answer)</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Explanation */}
+                      <div className="bg-blue-50 p-3 rounded border border-blue-200">
+                        <p className="font-medium text-blue-800">Explanation:</p>
+                        <p>{question.explanation}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-center space-x-4">
+                  <button 
+                    onClick={startQuiz}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  >
+                    Retry Quiz
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setQuizStarted(false);
+                      setShowResults(false);
+                    }}
+                    className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+                  >
+                    Back to Options
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Flashcards Section */}
+            {studyMode === 'flashcards' && !quizStarted && (
+              <div className="flex flex-col items-center">
+                <div className="bg-white rounded-lg shadow-lg border border-gray-200 w-full max-w-2xl h-64 md:h-80 mb-6 overflow-hidden">
+                  <div 
+                    className="w-full h-full flex items-center justify-center p-6 cursor-pointer"
+                    onClick={flipFlashcard}
+                    style={{ perspective: '1000px' }}
+                  >
+                    <div 
+                      className={`relative w-full h-full rounded-lg bg-gradient-to-r ${
+                        flashcardFlipped 
+                          ? 'from-blue-50 to-blue-100' 
+                          : 'from-yellow-50 to-yellow-100'
+                      } flex items-center justify-center p-6 transform transition-transform duration-500 ${
+                        flashcardFlipped ? 'rotate-y-180' : ''
+                      }`}
+                      style={{ transformStyle: 'preserve-3d', backfaceVisibility: 'hidden' }}
+                    >
+                      {!flashcardFlipped ? (
+                        <>
+                          <div className="absolute top-4 left-4 bg-blue-600 text-white text-xs px-2 py-1 rounded">
+                            {activeExam === 'core1' ? 'Core 1' : 'Core 2'}: {
+                              activeTopic || 'All Topics'
+                            }
+                          </div>
+                          <div className="text-center">
+                            <h3 className="text-2xl font-bold mb-2">
+                              {activeTopic 
+                                ? getFlashcardsByTopic(activeExam, activeTopic)[flashcardIndex]?.term
+                                : getFlashcardsByTopic(activeExam, 'random')[flashcardIndex]?.term
+                              }
+                            </h3>
+                            <p className="text-sm text-gray-600">Click to reveal definition</p>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-center">
+                          <p className="text-lg">
+                            {activeTopic 
+                              ? getFlashcardsByTopic(activeExam, activeTopic)[flashcardIndex]?.definition
+                              : getFlashcardsByTopic(activeExam, 'random')[flashcardIndex]?.definition
+                            }
+                          </p>
+                          <p className="text-sm text-gray-600 mt-4">Click to return to term</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Flashcard Navigation */}
+                <div className="flex justify-center space-x-4 mb-8">
+                  <button 
+                    onClick={prevFlashcard}
+                    className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                  >
+                    Previous
+                  </button>
+                  <button 
+                    onClick={flipFlashcard}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    Flip Card
+                  </button>
+                  <button 
+                    onClick={nextFlashcard}
+                    className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                  >
+                    Next
+                  </button>
+                </div>
+
+                <button 
+                  onClick={() => setQuizStarted(false)}
+                  className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+                >
+                  Back to Options
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Resources Section */}
+        {activeSection === 'resources' && (
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl font-bold mb-6">Study Resources</h2>
+            
+            {/* Study Tips */}
+            <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 mb-6">
+              <h3 className="text-xl font-bold mb-4">Exam Preparation Tips</h3>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Understand the exam objectives - review the CompTIA A+ objectives PDF</li>
+                <li>Practice hands-on with both hardware and software components</li>
+                <li>Learn troubleshooting methodologies, not just isolated facts</li>
+                <li>Use flash cards for terminology, port numbers, and specifications</li>
+                <li>Take practice exams to identify knowledge gaps</li>
+                <li>Join study groups or forums for discussing complex topics</li>
+                <li>Create a study schedule with regular review periods</li>
+                <li>Focus on areas where you feel less confident</li>
+              </ul>
+            </div>
+            
+            {/* Key Topics */}
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
+              {/* Core 1 Topics */}
+              <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                <h3 className="text-lg font-bold mb-3">Core 1 Key Focus Areas:</h3>
+                <ul className="list-disc pl-6 space-y-1">
+                  <li>Hardware components and their functions</li>
+                  <li>Network types and configurations</li>
+                  <li>Mobile device hardware and network connectivity</li>
+                  <li>Network troubleshooting and tools</li>
+                  <li>Hardware and device troubleshooting</li>
+                  <li>Virtualization and cloud concepts</li>
+                </ul>
+              </div>
+              
+              {/* Core 2 Topics */}
+              <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                <h3 className="text-lg font-bold mb-3">Core 2 Key Focus Areas:</h3>
+                <ul className="list-disc pl-6 space-y-1">
+                  <li>Operating system installation and configuration</li>
+                  <li>Security concepts and technologies</li>
+                  <li>Software troubleshooting</li>
+                  <li>Operational procedures</li>
+                  <li>Disaster prevention and recovery</li>
+                  <li>Documentation best practices</li>
+                </ul>
+              </div>
+            </div>
+            
+            {/* Memorization Tips */}
+            <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 mb-6">
+              <h3 className="text-xl font-bold mb-4">Key Items to Memorize</h3>
+              
+              <h4 className="font-bold mt-4 mb-2">Common Port Numbers:</h4>
+              <div className="overflow-x-auto">
+                <table className="min-w-full border-collapse border border-gray-300">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border border-gray-300 px-4 py-2">Port</th>
+                      <th className="border border-gray-300 px-4 py-2">Protocol</th>
+                      <th className="border border-gray-300 px-4 py-2">Service</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="border border-gray-300 px-4 py-1">20/21</td>
+                      <td className="border border-gray-300 px-4 py-1">TCP</td>
+                      <td className="border border-gray-300 px-4 py-1">FTP (File Transfer Protocol)</td>
+                    </tr>
+                    <tr className="bg-gray-50">
+                      <td className="border border-gray-300 px-4 py-1">22</td>
+                      <td className="border border-gray-300 px-4 py-1">TCP</td>
+                      <td className="border border-gray-300 px-4 py-1">SSH (Secure Shell)</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 px-4 py-1">23</td>
+                      <td className="border border-gray-300 px-4 py-1">TCP</td>
+                      <td className="border border-gray-300 px-4 py-1">Telnet</td>
+                    </tr>
+                    <tr className="bg-gray-50">
+                      <td className="border border-gray-300 px-4 py-1">25</td>
+                      <td className="border border-gray-300 px-4 py-1">TCP</td>
+                      <td className="border border-gray-300 px-4 py-1">SMTP (Simple Mail Transfer Protocol)</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 px-4 py-1">53</td>
+                      <td className="border border-gray-300 px-4 py-1">TCP/UDP</td>
+                      <td className="border border-gray-300 px-4 py-1">DNS (Domain Name System)</td>
+                    </tr>
+                    <tr className="bg-gray-50">
+                      <td className="border border-gray-300 px-4 py-1">80</td>
+                      <td className="border border-gray-300 px-4 py-1">TCP</td>
+                      <td className="border border-gray-300 px-4 py-1">HTTP (Hypertext Transfer Protocol)</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 px-4 py-1">443</td>
+                      <td className="border border-gray-300 px-4 py-1">TCP</td>
+                      <td className="border border-gray-300 px-4 py-1">HTTPS (HTTP Secure)</td>
+                    </tr>
+                    <tr className="bg-gray-50">
+                      <td className="border border-gray-300 px-4 py-1">3389</td>
+                      <td className="border border-gray-300 px-4 py-1">TCP</td>
+                      <td className="border border-gray-300 px-4 py-1">RDP (Remote Desktop Protocol)</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              <h4 className="font-bold mt-6 mb-2">Windows Command Line Tools:</h4>
+              <div className="overflow-x-auto">
+                <table className="min-w-full border-collapse border border-gray-300">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border border-gray-300 px-4 py-2">Command</th>
+                      <th className="border border-gray-300 px-4 py-2">Purpose</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="border border-gray-300 px-4 py-1">ipconfig</td>
+                      <td className="border border-gray-300 px-4 py-1">Display IP configuration information</td>
+                    </tr>
+                    <tr className="bg-gray-50">
+                      <td className="border border-gray-300 px-4 py-1">ping</td>
+                      <td className="border border-gray-300 px-4 py-1">Test connectivity to another device</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 px-4 py-1">tracert</td>
+                      <td className="border border-gray-300 px-4 py-1">Trace route to a destination</td>
+                    </tr>
+                    <tr className="bg-gray-50">
+                      <td className="border border-gray-300 px-4 py-1">nslookup</td>
+                      <td className="border border-gray-300 px-4 py-1">Query DNS records</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 px-4 py-1">netstat</td>
+                      <td className="border border-gray-300 px-4 py-1">Display network connections and statistics</td>
+                    </tr>
+                    <tr className="bg-gray-50">
+                      <td className="border border-gray-300 px-4 py-1">sfc /scannow</td>
+                      <td className="border border-gray-300 px-4 py-1">Scan and repair Windows system files</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            
+            {/* Additional Resources */}
+            <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+              <h3 className="text-xl font-bold mb-4">Additional Resources</h3>
+              <p className="mb-4">
+                These resources can help supplement your study for the CompTIA A+ exams:
+              </p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Official CompTIA A+ Certification Study Guide</li>
+                <li>CompTIA CertMaster Practice for A+</li>
+                <li>Professor Messer's Free A+ Training Videos</li>
+                <li>Mike Meyers' CompTIA A+ Certification Books</li>
+                <li>ExamCompass.com for practice questions</li>
+                <li>Tech forums like Reddit's r/CompTIA community</li>
+                <li>Hands-on labs with virtual machines or old hardware</li>
+              </ul>
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-gray-800 text-white p-4 mt-auto">
+        <div className="container mx-auto text-center">
+          <p>&copy; {new Date().getFullYear()} CompTIA A+ Test Prep</p>
+          <p className="text-sm mt-1">This is a study application and is not affiliated with or endorsed by CompTIA.</p>
+        </div>
+      </footer>
+    </div>
+  );
+}

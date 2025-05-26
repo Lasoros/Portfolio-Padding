@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Screenshot eBook Creator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .control-group {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-group h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00d2d3, #54a0ff);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .status {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .screenshots-grid {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .screenshots-grid h3 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.5em;
+        }
+
+        .screenshots-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .screenshot-item {
+            position: relative;
+            background: #f8f9fa;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .screenshot-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .screenshot-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .screenshot-info {
+            padding: 15px;
+            text-align: center;
+        }
+
+        .screenshot-info .page-number {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .screenshot-info .timestamp {
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 107, 107, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background: rgba(255, 107, 107, 1);
+            transform: scale(1.1);
+        }
+
+        .capture-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .capture-overlay.active {
+            display: flex;
+        }
+
+        .capture-message {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 400px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .shortcut-hint {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .screenshots-container {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 PDF Screenshot eBook Creator</h1>
+            <p>Capture PDF pages as screenshots and create your local ebook library</p>
+            <div class="shortcut-hint">
+                💡 <strong>Quick Tip:</strong> Press <kbd>Ctrl+Shift+S</kbd> (or <kbd>Cmd+Shift+S</kbd> on Mac) to quickly capture screenshots!
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <h3>📖 Book Information</h3>
+                <div class="input-group">
+                    <label for="bookTitle">Book Title:</label>
+                    <input type="text" id="bookTitle" placeholder="Enter book title..." value="My eBook">
+                </div>
+                <div class="input-group">
+                    <label for="authorName">Author:</label>
+                    <input type="text" id="authorName" placeholder="Enter author name..." value="Unknown Author">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>📸 Capture Controls</h3>
+                <button class="btn" onclick="requestScreenCapture()">
+                    📸 Start Screen Capture
+                </button>
+                <button class="btn" onclick="captureCurrentScreen()" id="captureBtn" disabled>
+                    📷 Capture Screenshot
+                </button>
+                <button class="btn btn-danger" onclick="stopCapture()" id="stopBtn" disabled>
+                    ⏹️ Stop Capture
+                </button>
+            </div>
+
+            <div class="control-group">
+                <h3>💾 Export Options</h3>
+                <button class="btn btn-success" onclick="downloadAsZip()" id="downloadBtn">
+                    📦 Download as ZIP
+                </button>
+                <button class="btn btn-success" onclick="generatePDF()" id="pdfBtn">
+                    📄 Generate PDF eBook
+                </button>
+                <button class="btn btn-danger" onclick="clearAllScreenshots()">
+                    🗑️ Clear All
+                </button>
+            </div>
+        </div>
+
+        <div class="status">
+            <div class="status-item">
+                <span><strong>📊 Screenshots Captured:</strong></span>
+                <span id="screenshotCount">0</span>
+            </div>
+            <div class="status-item">
+                <span><strong>📅 Session Started:</strong></span>
+                <span id="sessionTime">-</span>
+            </div>
+            <div class="status-item">
+                <span><strong>🎯 Capture Status:</strong></span>
+                <span id="captureStatus">Ready</span>
+            </div>
+        </div>
+
+        <div class="screenshots-grid">
+            <h3>📑 Captured Pages</h3>
+            <div class="screenshots-container" id="screenshotsContainer">
+                <div style="text-align: center; color: #666; font-style: italic; grid-column: 1/-1; padding: 40px;">
+                    No screenshots captured yet. Click "Start Screen Capture" to begin!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="capture-overlay" id="captureOverlay">
+        <div class="capture-message">
+            <h3>🎬 Screen Capture Active</h3>
+            <p>Your screen is being captured. Navigate to your PDF and click "Capture Screenshot" for each page you want to save.</p>
+            <button class="btn" onclick="captureCurrentScreen()" style="margin-top: 15px;">
+                📷 Capture This Page
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let mediaStream = null;
+        let screenshots = [];
+        let sessionStartTime = new Date();
+        let pageCounter = 1;
+
+        // Initialize session time
+        document.getElementById('sessionTime').textContent = sessionStartTime.toLocaleTimeString();
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'S') {
+                e.preventDefault();
+                if (mediaStream) {
+                    captureCurrentScreen();
+                } else {
+                    requestScreenCapture();
+                }
+            }
+        });
+
+        async function requestScreenCapture() {
+            try {
+                const captureStream = await navigator.mediaDevices.getDisplayMedia({
+                    video: {
+                        mediaSource: 'screen',
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    }
+                });
+
+                mediaStream = captureStream;
+                
+                // Update UI
+                document.getElementById('captureBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = false;
+                document.getElementById('captureStatus').textContent = 'Active - Ready to capture';
+                document.getElementById('captureOverlay').classList.add('active');
+
+                // Handle stream end
+                captureStream.getVideoTracks()[0].addEventListener('ended', () => {
+                    stopCapture();
+                });
+
+            } catch (err) {
+                console.error('Error starting screen capture:', err);
+                alert('Failed to start screen capture. Please make sure you grant permission and try again.');
+            }
+        }
+
+        async function captureCurrentScreen() {
+            if (!mediaStream) {
+                alert('Please start screen capture first!');
+                return;
+            }
+
+            try {
+                // Create video element to capture frame
+                const video = document.createElement('video');
+                video.srcObject = mediaStream;
+                video.play();
+
+                video.addEventListener('loadedmetadata', () => {
+                    // Create canvas to capture the frame
+                    const canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0);
+
+                    // Convert to blob
+                    canvas.toBlob((blob) => {
+                        const screenshot = {
+                            id: Date.now(),
+                            blob: blob,
+                            url: URL.createObjectURL(blob),
+                            pageNumber: pageCounter++,
+                            timestamp: new Date().toLocaleTimeString(),
+                            filename: `page_${String(pageCounter - 1).padStart(3, '0')}.png`
+                        };
+
+                        screenshots.push(screenshot);
+                        updateScreenshotsDisplay();
+                        updateStatus();
+
+                        // Show success feedback
+                        document.getElementById('captureStatus').textContent = `Captured page ${screenshot.pageNumber}`;
+                        setTimeout(() => {
+                            if (mediaStream) {
+                                document.getElementById('captureStatus').textContent = 'Active - Ready to capture';
+                            }
+                        }, 2000);
+                    }, 'image/png', 0.9);
+                });
+
+            } catch (err) {
+                console.error('Error capturing screenshot:', err);
+                alert('Failed to capture screenshot. Please try again.');
+            }
+        }
+
+        function stopCapture() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+
+            // Update UI
+            document.getElementById('captureBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = true;
+            document.getElementById('captureStatus').textContent = 'Stopped';
+            document.getElementById('captureOverlay').classList.remove('active');
+        }
+
+        function updateScreenshotsDisplay() {
+            const container = document.getElementById('screenshotsContainer');
+            
+            if (screenshots.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; color: #666; font-style: italic; grid-column: 1/-1; padding: 40px;">
+                        No screenshots captured yet. Click "Start Screen Capture" to begin!
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = screenshots.map(screenshot => `
+                <div class="screenshot-item">
+                    <button class="delete-btn" onclick="deleteScreenshot(${screenshot.id})" title="Delete screenshot">
+                        ✕
+                    </button>
+                    <img src="${screenshot.url}" alt="Page ${screenshot.pageNumber}" loading="lazy">
+                    <div class="screenshot-info">
+                        <div class="page-number">Page ${screenshot.pageNumber}</div>
+                        <div class="timestamp">${screenshot.timestamp}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function deleteScreenshot(id) {
+            const index = screenshots.findIndex(s => s.id === id);
+            if (index !== -1) {
+                URL.revokeObjectURL(screenshots[index].url);
+                screenshots.splice(index, 1);
+                
+                // Renumber pages
+                screenshots.forEach((screenshot, i) => {
+                    screenshot.pageNumber = i + 1;
+                    screenshot.filename = `page_${String(i + 1).padStart(3, '0')}.png`;
+                });
+                
+                pageCounter = screenshots.length + 1;
+                updateScreenshotsDisplay();
+                updateStatus();
+            }
+        }
+
+        function clearAllScreenshots() {
+            if (screenshots.length === 0) return;
+            
+            if (confirm(`Are you sure you want to delete all ${screenshots.length} screenshots?`)) {
+                screenshots.forEach(screenshot => URL.revokeObjectURL(screenshot.url));
+                screenshots = [];
+                pageCounter = 1;
+                updateScreenshotsDisplay();
+                updateStatus();
+            }
+        }
+
+        function updateStatus() {
+            document.getElementById('screenshotCount').textContent = screenshots.length;
+        }
+
+        async function downloadAsZip() {
+            if (screenshots.length === 0) {
+                alert('No screenshots to download!');
+                return;
+            }
+
+            try {
+                // Create a simple ZIP-like structure using JSZip alternative
+                const bookTitle = document.getElementById('bookTitle').value.trim() || 'My eBook';
+                const author = document.getElementById('authorName').value.trim() || 'Unknown Author';
+                
+                // For now, we'll download individual files
+                // In a real implementation, you'd want to use JSZip library
+                for (let i = 0; i < screenshots.length; i++) {
+                    const screenshot = screenshots[i];
+                    const link = document.createElement('a');
+                    link.href = screenshot.url;
+                    link.download = `${bookTitle}_${screenshot.filename}`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    // Small delay between downloads to avoid browser blocking
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+
+                alert(`Downloaded ${screenshots.length} screenshots!`);
+            } catch (err) {
+                console.error('Error downloading files:', err);
+                alert('Failed to download files. Please try again.');
+            }
+        }
+
+        async function generatePDF() {
+            if (screenshots.length === 0) {
+                alert('No screenshots to generate PDF!');
+                return;
+            }
+
+            try {
+                const bookTitle = document.getElementById('bookTitle').value.trim() || 'My eBook';
+                const author = document.getElementById('authorName').value.trim() || 'Unknown Author';
+
+                // Create a new window with PDF content
+                const pdfWindow = window.open('', '_blank');
+                pdfWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>${bookTitle}</title>
+                        <style>
+                            body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+                            .cover { text-align: center; page-break-after: always; padding: 100px 20px; }
+                            .cover h1 { font-size: 3em; margin-bottom: 20px; }
+                            .cover h2 { font-size: 1.5em; color: #666; }
+                            .page { page-break-after: always; text-align: center; }
+                            .page img { max-width: 100%; max-height: 90vh; }
+                            .page-info { margin-top: 10px; font-size: 0.9em; color: #666; }
+                            @media print {
+                                .page { page-break-after: always; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="cover">
+                            <h1>${bookTitle}</h1>
+                            <h2>by ${author}</h2>
+                            <p>Generated on ${new Date().toLocaleDateString()}</p>
+                            <p>${screenshots.length} pages</p>
+                        </div>
+                        ${screenshots.map(screenshot => `
+                            <div class="page">
+                                <img src="${screenshot.url}" alt="Page ${screenshot.pageNumber}">
+                                <div class="page-info">Page ${screenshot.pageNumber}</div>
+                            </div>
+                        `).join('')}
+                    </body>
+                    </html>
+                `);
+                
+                pdfWindow.document.close();
+                
+                // Focus the new window and trigger print
+                setTimeout(() => {
+                    pdfWindow.focus();
+                    pdfWindow.print();
+                }, 1000);
+
+            } catch (err) {
+                console.error('Error generating PDF:', err);
+                alert('Failed to generate PDF. Please try again.');
+            }
+        }
+
+        // Initialize
+        updateStatus();
+    </script>
+</body>
+</html>

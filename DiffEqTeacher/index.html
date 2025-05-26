@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Differential Equations Tutor</title>
+  <link rel="stylesheet" href="style.css" />
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Differential Equations Tutor</h1>
+    <p>Learn about first-order differential equations with interactive slope fields!</p>
+
+    <label for="equation">Enter dy/dx = f(x, y):</label>
+    <input type="text" id="equation" value="x - y" />
+    <button onclick="drawSlopeField()">Draw Slope Field</button>
+
+    <canvas id="slopeCanvas" width="600" height="600"></canvas>
+    <p class="hint">Try: <code>x + y</code>, <code>x - y</code>, or <code>Math.sin(x) - y</code></p>
+  </div>
+</body>
+</html>
