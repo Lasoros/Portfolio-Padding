@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Makes Me Unique - Lander</title>
+
+    <link rel="stylesheet" href="style1.css">
+
+    <link rel="shortcut icon" href="carwashfav.png" type="image/png">
+
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+
+    <div class="container">
+        <div class="main-content">
+            <div class="question">
+                "In 150 characters or fewer, tell us what makes you unique. Try to be creative and say something that will catch our eye!"
+            </div>
+
+            <div class="unique-text" id="uniqueText"></div>
+
+            <div class="character-counter" id="charCounter">
+                Character count: <span id="count">0</span>/150 ✓
+            </div>
+
+            <div class="skills-showcase">
+                <div class="skill-card">
+                    <div class="skill-icon">🎨</div>
+                    <div class="skill-name">Creative Problem Solver</div>
+                    <div class="skill-description">I find elegant solutions to complex challenges</div>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-icon">⚡</div>
+                    <div class="skill-name">Fast Learner</div>
+                    <div class="skill-description">I adapt quickly to new technologies and environments</div>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-icon">🤝</div>
+                    <div class="skill-name">Team Player</div>
+                    <div class="skill-description">I collaborate effectively and lift others up</div>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-icon">🎯</div>
+                    <div class="skill-name">Detail-Oriented</div>
+                    <div class="skill-description">I deliver polished, high-quality work</div>
+                </div>
+            </div>
+
+            <div class="cta-section">
+                <button class="hire-button" onclick="showContact()">Let's Talk!</button>
+                <button class="hire-button" onclick="downloadResume()">View Resume</button>
+            </div>
+
+            <div class="contact-info" id="contactInfo" style="display: none;">
+                <p>📧 thomaswimer@hotmail.com</p>
+                <p>📱 937.902.3445</p>
+                <a href="http://thomaswimer.com"><button class="hire-button" >thomaswimer.com</button></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="secret-message" onclick="easterEgg()">
+        💡 Click me for a surprise!
+    </div>
+
+    <script>
+        
+        const uniqueTexts = [
+            "I turn grime into shine and bugs into features",
+            "I rinse off errors and polish up solutions",
+            "I wax on while squashing bugs and buffing code",
+            "I detail code like chrome: spotless and smooth",
+            "I automate the suds and sparkle with Tech magic"
+        ];
+
+        let currentTextIndex = 0;
+        let isTyping = false;
+
+        function getTypingSpeed(char) {
+            let speed = 80;
+            
+            return speed;
+        }
+
+        function typewriterEffect(text, element, callback) {
+            if (isTyping) return;
+            isTyping = true;
+            
+            element.textContent = '';
+            element.className = 'unique-text';
+            
+            let i = 0;
+            
+            function typeNextChar() {
+                if (i < text.length) {
+                    const char = text.charAt(i);
+                    element.textContent += char;
+                    i++;
+                    
+                    const delay = getTypingSpeed(char);
+                    setTimeout(typeNextChar, delay);
+                } else {
+                    element.className = 'unique-text';
+                    isTyping = false;
+                    if (callback) callback();
+                }
+            }
+            
+            typeNextChar();
+        }
+
+        function cycleTexts() {
+            const uniqueTextElement = document.getElementById('uniqueText');
+            const currentText = uniqueTexts[currentTextIndex];
+            
+            typewriterEffect(currentText, uniqueTextElement, () => {
+                document.getElementById('count').textContent = currentText.length;
+                
+                setTimeout(() => {
+                    currentTextIndex = (currentTextIndex + 1) % uniqueTexts.length;
+                    cycleTexts();
+                }, 4000);
+            });
+        }
+        // const uniqueTexts = [
+        //     "I turn grime into shine and bugs into features 🧽→✨→🚗",
+        //     "I rinse off errors and polish up solutions 💦🛠️🚿",
+        //     "I wax poetic while squashing bugs and buffing code 🐞🧼🧠",
+        //     "I detail code like chrome—spotless and smooth 💻🚘💎",
+        //     "I automate the suds and sparkle with CI/CD magic 🤖🫧🌟"
+        // ];
+
+        // let currentTextIndex = 0;
+        // let isTyping = false;
+
+        // function typewriterEffect(text, element, callback) {
+        //     if (isTyping) return;
+        //     isTyping = true;
+            
+        //     element.textContent = '';
+        //     element.className = 'unique-text typing';
+            
+        //     let i = 0;
+        //     const timer = setInterval(() => {
+        //         if (i < text.length) {
+        //             element.textContent += text.charAt(i);
+        //             i++;
+        //         } else {
+        //             clearInterval(timer);
+        //             element.className = 'unique-text';
+        //             isTyping = false;
+        //             if (callback) callback();
+        //         }
+        //     }, 80);
+        // }
+
+        // function cycleTexts() {
+        //     const uniqueTextElement = document.getElementById('uniqueText');
+        //     const currentText = uniqueTexts[currentTextIndex];
+            
+        //     typewriterEffect(currentText, uniqueTextElement, () => {
+        //         document.getElementById('count').textContent = currentText.length;
+                
+        //         setTimeout(() => {
+        //             currentTextIndex = (currentTextIndex + 1) % uniqueTexts.length;
+        //             cycleTexts();
+        //         }, 4000);
+        //     });
+        // }
+        // Keep here to fix for later. Emoji's cant be excluded from "type animation". Also Figure out why "Typing cursor" is bugged. Hidden/deleted for now. For sure need to figure out why this is bugged as its a needed fix
+
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.width = Math.random() * 10 + 5 + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+
+        let mouseTrails = [];
+        document.addEventListener('mousemove', (e) => {
+            const trail = document.createElement('div');
+            trail.className = 'cursor-trail';
+            trail.style.left = e.clientX - 10 + 'px';
+            trail.style.top = e.clientY - 10 + 'px';
+            document.body.appendChild(trail);
+
+            mouseTrails.push(trail);
+            if (mouseTrails.length > 5) {
+                const oldTrail = mouseTrails.shift();
+                oldTrail.remove();
+            }
+
+            setTimeout(() => {
+                trail.remove();
+                mouseTrails = mouseTrails.filter(t => t !== trail);
+            }, 500);
+        });
+
+
+        function showContact() {
+            const contactInfo = document.getElementById('contactInfo');
+            contactInfo.style.display = contactInfo.style.display === 'none' ? 'block' : 'none';
+            
+            if (contactInfo.style.display === 'block') {
+                contactInfo.style.animation = 'fadeInUp 0.5s ease-out';
+            }
+        }
+
+
+        function downloadResume() {
+            window.open('Thomas.Wimer.pdf', '_blank');
+        }
+
+        function easterEgg() {
+            const messages = [
+                "🎉 You found the easter egg! I love adding delightful details!",
+                "🔍 Attention to detail is my superpower!",
+                "🚀 I believe great experiences come from small touches!",
+                "✨ Thanks for exploring - this is how I approach all my work!",
+                "🎯 I'm cycling through 5 different unique statements - watch them change!",
+                "💡 This page has " + uniqueTexts.length + " different ways to describe what makes me unique!"
+            ];
+            
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            
+
+            const message = document.createElement('div');
+            message.style.position = 'fixed';
+            message.style.top = '20px';
+            message.style.left = '50%';
+            message.style.transform = 'translateX(-50%)';
+            message.style.background = 'rgba(255, 255, 255, 0.95)';
+            message.style.color = '#333';
+            message.style.padding = '15px 25px';
+            message.style.borderRadius = '25px';
+            message.style.zIndex = '1001';
+            message.style.animation = 'fadeInUp 0.5s ease-out';
+            message.style.boxShadow = '0 10px 30px rgba(0,0,0,0.2)';
+            message.style.backdropFilter = 'blur(10px)';
+            message.style.maxWidth = '80%';
+            message.style.textAlign = 'center';
+            message.textContent = randomMessage;
+            
+            document.body.appendChild(message);
+            
+            setTimeout(() => {
+                message.style.animation = 'fadeIn 0.5s ease-out reverse';
+                setTimeout(() => message.remove(), 500);
+            }, 4000);
+        }
+
+
+        window.addEventListener('load', () => {
+            createParticles();
+            setTimeout(() => {
+                cycleTexts();
+            }, 2000);
+        });
+
+
+        setInterval(() => {
+            const sparkle = document.createElement('div');
+            sparkle.innerHTML = '✨';
+            sparkle.style.position = 'fixed';
+            sparkle.style.left = Math.random() * window.innerWidth + 'px';
+            sparkle.style.top = Math.random() * window.innerHeight + 'px';
+            sparkle.style.fontSize = '1.5rem';
+            sparkle.style.pointerEvents = 'none';
+            sparkle.style.zIndex = '5';
+            sparkle.style.animation = 'celebration 2s ease-out forwards';
+            
+            document.body.appendChild(sparkle);
+            
+            setTimeout(() => {
+                sparkle.remove();
+            }, 2000);
+        }, 5000);
+    </script>
+</body>
+</html>

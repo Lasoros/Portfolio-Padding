@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WHEELS-01 Terminal System</title>
+</head>
+<style>
+    @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "JetBrains Mono", monospace;
+  background: #000;
+  color: #00ff00;
+  overflow: hidden;
+  cursor: none;
+}
+
+.custom-cursor {
+  position: fixed;
+  width: 12px;
+  height: 16px;
+  background: #00ff00;
+  z-index: 10000;
+  pointer-events: none;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.boot-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  z-index: 1001;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.boot-text {
+  font-size: 14px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  color: #00ff00;
+  font-family: "JetBrains Mono", monospace;
+  margin: 0;
+  padding: 0;
+}
+
+.desktop {
+  width: 100vw;
+  height: 100vh;
+  background: transparent;
+  /* background: linear-gradient(45deg, #001100, #002200); */
+  position: relative;
+  display: none;
+}
+
+.taskbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: linear-gradient(to bottom, #333, #111);
+  border-top: 2px solid #555;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  z-index: 100;
+}
+
+.start-menu {
+  background: #222;
+  color: #00ff00;
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-family: inherit;
+  border: 1px solid #555;
+}
+
+.start-menu:hover {
+  background: #333;
+}
+
+.system-time {
+  color: #00ff00;
+  font-size: 12px;
+}
+
+.desktop-icons {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  display: grid;
+  gap: 15px;
+}
+
+.desktop-icon {
+  width: 80px;
+  height: 80px;
+  background: rgba(0, 255, 0, 0.1);
+  border: 1px solid #00ff00;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 10px;
+  text-align: center;
+  padding: 5px;
+}
+
+.desktop-icon:hover {
+  background: rgba(0, 255, 0, 0.5);
+  transform: scale(1.05);
+}
+
+.window {
+  position: absolute;
+  background: #000;
+  border: 2px solid #00ff00;
+  min-width: 400px;
+  min-height: 300px;
+  display: none;
+  z-index: 50;
+}
+
+.window-header {
+  background: linear-gradient(to right, #003300, #001100);
+  padding: 8px;
+  border-bottom: 1px solid #00ff00;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: move;
+}
+
+.window-title {
+  font-weight: bold;
+}
+
+.window-controls {
+  display: flex;
+  gap: 5px;
+}
+
+.window-btn {
+  width: 20px;
+  height: 20px;
+  background: #333;
+  border: 1px solid #555;
+  color: #00ff00;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.window-btn:hover {
+  background: #555;
+}
+
+.window-content {
+  padding: 15px;
+  height: calc(100% - 40px);
+  overflow-y: auto;
+}
+
+.terminal {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.terminal-input {
+  background: transparent;
+  border: none;
+  color: #00ff00;
+  font-family: inherit;
+  font-size: inherit;
+  outline: none;
+  width: 100%;
+}
+
+.prompt {
+  color: #00ff00;
+}
+
+.error {
+  color: #ff0000;
+}
+
+.warning {
+  color: #ffff00;
+}
+
+.glitch {
+  animation: glitch 0.3s infinite;
+}
+
+@keyframes glitch {
+  0% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-2px, 2px);
+  }
+  40% {
+    transform: translate(-2px, -2px);
+  }
+  60% {
+    transform: translate(2px, 2px);
+  }
+  80% {
+    transform: translate(2px, -2px);
+  }
+  100% {
+    transform: translate(0);
+  }
+}
+
+.matrix-rain {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.project-card {
+  background: rgba(0, 50, 0, 0.3);
+  border: 1px solid #00ff00;
+  padding: 15px;
+  transition: all 0.3s;
+}
+
+.project-card:hover {
+  background: rgba(0, 100, 0, 0.3);
+  transform: translateY(-5px);
+}
+
+.ascii-art {
+  font-size: 8px;
+  line-height: 1;
+  color: #00aa00;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.typewriter {
+  overflow: hidden;
+  border-right: 2px solid #00ff00;
+  animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+}
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes blink-caret {
+  from,
+  to {
+    border-color: transparent;
+  }
+  50% {
+    border-color: #00ff00;
+  }
+}
+
+.button-container {
+  position: relative;
+  z-index: 10;
+}
+
+/* Matrix button styles */
+.matrix-button {
+  top: 5px;
+  position: relative;
+  padding: 5px 10px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid #00ff00;
+  color: #00ff00;
+  font-family: "Orbitron", monospace;
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 20px rgba(0, 255, 0, 0.3), inset 0 0 20px rgba(0, 255, 0, 0.1);
+  overflow: hidden;
+}
+
+.matrix-button::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    #00ff00,
+    transparent,
+    #00ff00,
+    transparent
+  );
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.matrix-button::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 255, 0, 0.2),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.matrix-button:hover {
+  color: #000;
+  background: rgba(0, 255, 0, 0.1);
+  border-color: #00ff00;
+  box-shadow: 0 0 30px rgba(0, 255, 0, 0.6), inset 0 0 30px rgba(0, 255, 0, 0.2);
+  text-shadow: 0 0 10px #00ff00;
+}
+
+.matrix-button:hover::before {
+  opacity: 1;
+  animation: border-glow 2s linear infinite;
+}
+
+.matrix-button:hover::after {
+  left: 100%;
+}
+
+.matrix-button:active {
+  transform: scale(0.98);
+  box-shadow: 0 0 40px rgba(0, 255, 0, 0.8), inset 0 0 40px rgba(0, 255, 0, 0.3);
+}
+
+@keyframes border-glow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+/* Glitch effect */
+.matrix-button.glitch {
+  animation: glitch 0.3s ease-in-out;
+}
+
+@keyframes glitch {
+  0%,
+  100% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-2px, 2px);
+  }
+  40% {
+    transform: translate(-2px, -2px);
+  }
+  60% {
+    transform: translate(2px, 2px);
+  }
+  80% {
+    transform: translate(2px, -2px);
+  }
+}
+
+</style>
+<body>
+    <div class="custom-cursor"></div>
+    
+    <!-- Matrix Rain Background -->
+    <canvas class="matrix-rain" id="matrixCanvas"></canvas>
+    
+    <!-- Boot Sequence -->
+    <div class="boot-screen" id="bootScreen">
+        <div class="boot-text" id="bootText">WHEELS-01 SYSTEM BOOT SEQUENCE INITIATED...</div>
+    </div>
+    
+    <!-- Desktop Environment -->
+    <div class="desktop" id="desktop">
+        <div class="desktop-icons">
+            <div class="desktop-icon" onclick="openWindow('terminal')">
+                <div class="ascii-art">█▀▀<br>█▄▄<br>▀▀▀</div>
+                <div>TERMINAL</div>
+            </div>
+            <div class="desktop-icon" onclick="openWindow('about')">
+                <div class="ascii-art">♦<br>◊<br>♦</div>
+                <div>ABOUT.EXE</div>
+            </div>
+            <div class="desktop-icon" onclick="openWindow('projects')">
+                <div class="ascii-art">▓▓▓<br>▓▓▓<br>▓▓▓</div>
+                <div>PROJECTS</div>
+            </div>
+            <div class="desktop-icon" onclick="openWindow('contact')">
+                <div class="ascii-art">@<br>░<br>◘</div>
+                <div>CONTACT</div>
+            </div>
+            <div class="desktop-icon" onclick="corruptSystem()">
+                <div class="ascii-art">☠<br>▲<br>☠</div>
+                <div>???</div>
+            </div>
+        </div>
+        
+        <!-- Windows -->
+        <div class="window" id="terminalWindow">
+            <div class="window-header">
+                <span class="window-title">WHEELS-01 Terminal v2.1</span>
+                <div class="window-controls">
+                    <div class="window-btn" onclick="minimizeWindow('terminalWindow')">_</div>
+                    <div class="window-btn" onclick="closeWindow('terminalWindow')">X</div>
+                </div>
+            </div>
+            <div class="window-content">
+                <div class="terminal" id="terminalContent">
+                    <div>WHEELS-01 Terminal Interface</div>
+                    <div>Type 'help' for available commands</div>
+                    <br>
+                    <div id="terminalOutput"></div>
+                    <div class="terminal-line">
+                        <span class="prompt">user@WHEELS-01:~$ </span>
+                        <input type="text" class="terminal-input" id="terminalInput" autocomplete="off">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="window" id="aboutWindow">
+            <div class="window-header">
+                <span class="window-title">System Information</span>
+                <div class="window-controls">
+                    <div class="window-btn" onclick="closeWindow('aboutWindow')">X</div>
+                </div>
+            </div>
+            <div class="window-content">
+                <div class="ascii-art" style="font-size: 12px; margin-bottom: 20px;">
+                        ________ _______ _______ _______ _____   _______ 
+                        |  |  |  |   |   |    ___|    ___|     |_|     __|
+                        |  |  |  |       |    ___|    ___|       |__     |
+                        |________|___|___|_______|_______|_______|_______|
+                </div>
+                <div>
+                    <strong>SYSTEM OPERATOR:</strong> Thomas Wimer<br>
+                    <strong>CLASSIFICATION:</strong> Full-Stack Developer<br>
+                    <strong>SECURITY LEVEL:</strong> 9/10<br>
+                    <strong>LOCATION:</strong> Digital Realm<br><br>
+                    
+                    <strong>CORE PROTOCOLS:</strong><br>
+                    • JavaScript/TypeScript Mastery<br>
+                    • React/Vue.js Interface Design<br>
+                    • Node.js Backend Systems<br>
+                    • Database Architecture<br>
+                    • Cloud Infrastructure<br><br>
+                    
+                    <strong>MISSION:</strong> Creating innovative digital solutions while exploring the boundaries between human creativity and machine logic.
+                </div>
+            </div>
+        </div>
+        
+        <div class="window" id="projectsWindow">
+            <div class="window-header">
+                <span class="window-title">Project Database</span>
+                <div class="window-controls">
+                    <div class="window-btn" onclick="closeWindow('projectsWindow')">X</div>
+                </div>
+            </div>
+            <div class="window-content">
+                <div>ACCESS GRANTED - DISPLAYING PROJECT FILES...</div>
+                <div class="portfolio-grid">
+                    <div class="project-card">
+                        <h3>INTERVIEW PREP</h3>
+                        <p>Developer Interview Prep. created as a preparation tool for web. dev. interviews.</p>
+                        <p><strong>TECH:</strong> REACT, TypeScript, Chakra, Vite</p>
+                        <div class="button-container">
+                            <button class="matrix-button" id="matrixBtn">
+                                <a href="https://interview-prep.thomaswimer.com/" target="_blank">Demo</a>
+                            </button>
+                            <button class="matrix-button" id="matrixBtn">
+                                <a href="https://github.com/Lasoros/Web-Dev-Prep" target="_blank">GitHub</a>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="project-card">
+                        <h3>RESUME BUILDER</h3>
+                        <p>An automated Resume Builder designed to alleviate the hassle of updating Resume's and allow for varations.</p>
+                        <p><strong>TECH:</strong> HTML, CSS</p>
+                        <div class="button-container">
+                            <button class="matrix-button" id="matrixBtn">
+                                <a href="https://resume-builder.thomaswimer.com/" target="_blank">Demo</a>
+                            </button>
+                            <button class="matrix-button" id="matrixBtn">
+                                <a href="https://github.com/Lasoros/Portfolio-Padding" target="_blank">GitHub</a>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="project-card">
+                        <h3>SNAKE GAME</h3>
+                        <p>Created A Old Classic Snake Game - My First Inital Test Of My JavaScript Knowledge.</p>
+                        <p><strong>TECH:</strong> HTML, CSS, JavaScript</p>
+                        <div class="button-container">
+                            <button class="matrix-button" id="matrixBtn">
+                                <a href="https://snake-game.thomaswimer.com/" target="_blank">Demo</a>
+                            </button>
+                            <button class="matrix-button" id="matrixBtn">
+                                <a href="https://github.com/Lasoros/snake-game" target="_blank">GitHub</a>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="project-card">
+                        <h3>EVE MARKET TRACKER</h3>
+                        <p>A market price tracker for items, seperated by regions, in the game Eve Online.</p>
+                        <p><strong>TECH:</strong> HTML, CSS</p>
+                        <div class="button-container">
+                            <button class="matrix-button" id="matrixBtn">
+                                <a href="https://eve-market-tracker.thomaswimer.com/" target="_blank">Demo</a>
+                            </button>
+                            <button class="matrix-button" id="matrixBtn">
+                                <a href="https://github.com/Lasoros/Portfolio-Padding" target="_blank">GitHub</a>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="project-card">
+                        <h3>GAME DISCOVERY APP</h3>
+                        <p>Cap Stone Project For Coding Boot Camp - Credit Mosh</p>
+                        <p><strong>TECH:</strong> HTML, CSS, TypeScript</p>
+                        <div class="button-container">
+                            <button class="matrix-button" id="matrixBtn">
+                                <a href="https://react-gaming-app.thomaswimer.com/" target="_blank">Demo</a>
+                            </button>
+                            <button class="matrix-button" id="matrixBtn">
+                                <a href="https://github.com/Lasoros/game-app" target="_blank">GitHub</a>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="window" id="contactWindow">
+            <div class="window-header">
+                <span class="window-title">Communication Protocols</span>
+                <div class="window-controls">
+                    <div class="window-btn" onclick="closeWindow('contactWindow')">X</div>
+                </div>
+            </div>
+            <div class="window-content">
+                <div class="ascii-art" style="margin-bottom: 20px;">
+                    ╔═══════════════════════════════════╗
+                    ║         SECURE CHANNELS           ║
+                    ╚═══════════════════════════════════╝
+                </div>
+                <div>
+                    <strong>DIRECT TRANSMISSION:</strong><br>
+                    📧 thomaswimer@hotmail.com<br><br>
+                    
+                    <strong>SOCIAL NETWORKS:</strong><br>
+                    🔗 Coming Soon<br>
+                    🐙 github.com/Lasoros<br>
+                    🐦 TBA<br><br>
+                    
+                    <strong>ENCRYPTED CHANNELS:</strong><br>
+                    💬 Available upon request<br><br>
+                    
+                    <div class="warning">
+                        WARNING: All communications are monitored for quality assurance.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="taskbar">
+            <button class="start-menu" onclick="showStartMenu()">◊ START</button>
+            <div class="system-time" id="systemTime"></div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let bootComplete = false;
+        let terminalHistory = [];
+        let historyIndex = -1;
+        let easterEggCount = 0;
+        
+        // Custom cursor
+        document.addEventListener('mousemove', (e) => {
+            const cursor = document.querySelector('.custom-cursor');
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+        
+        // Matrix rain effect - start after boot
+        function initMatrix() {
+            const canvas = document.getElementById('matrixCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+            const charArray = chars.split('');
+            
+            const fontSize = 14;
+            const columns = canvas.width / fontSize;
+            const drops = [];
+            
+            for (let x = 0; x < columns; x++) {
+                drops[x] = 1;
+            }
+            
+            function draw() {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = '#00ff00';
+                ctx.font = fontSize + 'px monospace';
+                
+                for (let i = 0; i < drops.length; i++) {
+                    const text = charArray[Math.floor(Math.random() * charArray.length)];
+                    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                    
+                    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                        drops[i] = 0;
+                    }
+                    drops[i]++;
+                }
+            }
+            
+            setInterval(draw, 50);
+        }
+        
+        // Initialize matrix only after desktop loads
+        setTimeout(() => {
+            const checkDesktop = setInterval(() => {
+                if (document.getElementById('desktop').style.display === 'block') {
+                    initMatrix();
+                    clearInterval(checkDesktop);
+                }
+            }, 100);
+        }, 1000);
+        
+        // Boot sequence
+        const bootMessages = [
+            '',
+            'Checking hardware integrity... OK',
+            'Loading kernel modules... OK',
+            'Initializing memory banks... OK',
+            'Scanning for threats... CLEAN',
+            'Establishing secure connections... OK',
+            'Loading user interface... OK',
+            '',
+            'ACCESSING CLASSIFIED FILES...',
+            'DECRYPTING USER DATA...',
+            'ESTABLISHING NEURAL LINK...',
+            '',
+            '████████████████████████ 100%',
+            '',
+            'WELCOME TO WHEELS.v=?',
+            'BOOT COMPLETE - SYSTEM READY',
+            ''
+        ];
+        
+        function typeBootMessage(messages, index = 0) {
+            if (index >= messages.length) {
+                setTimeout(() => {
+                    document.getElementById('bootScreen').style.display = 'none';
+                    document.getElementById('desktop').style.display = 'block';
+                    bootComplete = true;
+                    startSystemTime();
+                }, 1000);
+                return;
+            }
+            
+            const bootText = document.getElementById('bootText');
+            bootText.innerHTML += '<br>' + messages[index];
+            
+            // Scroll to bottom of boot screen
+            const bootScreen = document.getElementById('bootScreen');
+            bootScreen.scrollTop = bootScreen.scrollHeight;
+            
+            const delay = messages[index].includes('████') ? 2000 : 
+                         messages[index] === '' ? 300 : 
+                         Math.random() * 1000 + 500;
+            
+            setTimeout(() => typeBootMessage(messages, index + 1), delay);
+        }
+        
+        // Start boot sequence immediately when page loads
+        window.addEventListener('load', () => {
+            setTimeout(() => typeBootMessage(bootMessages), 1000);
+        });
+        
+        // System time
+        function startSystemTime() {
+            function updateTime() {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString();
+                document.getElementById('systemTime').textContent = timeString;
+            }
+            updateTime();
+            setInterval(updateTime, 1000);
+        }
+        
+        // Window management
+        let zIndexCounter = 51;
+        
+        function openWindow(windowId) {
+            const window = document.getElementById(windowId + 'Window');
+            window.style.display = 'block';
+            window.style.zIndex = zIndexCounter++;
+            
+            // Random position
+            window.style.left = Math.random() * (window.innerWidth - 500) + 'px';
+            window.style.top = Math.random() * (window.innerHeight - 400) + 'px';
+            
+            if (windowId === 'terminal') {
+                document.getElementById('terminalInput').focus();
+            }
+        }
+        
+        function closeWindow(windowId) {
+            document.getElementById(windowId).style.display = 'none';
+        }
+        
+        function minimizeWindow(windowId) {
+            const window = document.getElementById(windowId);
+            window.style.transform = 'scale(0)';
+            setTimeout(() => {
+                window.style.display = 'none';
+                window.style.transform = 'scale(1)';
+            }, 300);
+        }
+        
+        // Make windows draggable
+        document.addEventListener('DOMContentLoaded', () => {
+            const windows = document.querySelectorAll('.window');
+            windows.forEach(makeWindowDraggable);
+        });
+        
+        function makeWindowDraggable(windowElement) {
+            const header = windowElement.querySelector('.window-header');
+            let isDragging = false;
+            let currentX, currentY, initialX, initialY;
+            
+            header.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                initialX = e.clientX - windowElement.offsetLeft;
+                initialY = e.clientY - windowElement.offsetTop;
+                windowElement.style.zIndex = zIndexCounter++;
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                
+                currentX = e.clientX - initialX;
+                currentY = e.clientY - initialY;
+                
+                windowElement.style.left = currentX + 'px';
+                windowElement.style.top = currentY + 'px';
+            });
+            
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+        }
+        
+        // Terminal functionality
+        const terminalCommands = {
+            help: () => `Available commands:
+                        • help - Show this help message
+                        • about - Display system information
+                        • ls - List files
+                        • cat [filename] - Display file contents
+                        • hack - Initialize hacking protocols
+                        • matrix - Toggle matrix mode
+                        • clear - Clear terminal
+                        • whoami - Display current user
+                        • date - Show system date
+                        • uptime - Show system uptime
+                        • secrets - Access hidden files`,
+                                    
+                                    about: () => `WHEELS-01 Operating System v2.1.4
+                        Built for digital exploration and portfolio showcase
+                        Architecture: x64 Quantum Processing Unit
+                        Security Level: Maximum`,
+                                    
+                                    ls: () => `projects.db    contact.txt    secrets.enc
+                        about.sys     portfolio.exe  readme.md
+                        classified/   temp/          logs/`,
+                
+            cat: (args) => {
+                const files = {
+                    'readme.md': 'Welcome to my digital portfolio. Explore carefully...',
+                    'contact.txt': 'Secure communication channels available. Use CONTACT.EXE for details.',
+                    'about.sys': 'System operator classification: Full-Stack Developer'
+                };
+                const filename = args[0];
+                return files[filename] || `cat: ${filename}: No such file or directory`;
+            },
+            
+            hack: () => {
+                easterEggCount++;
+                return `Initiating hacking protocols...
+                        > Scanning for vulnerabilities...
+                        > Bypassing firewalls...
+                        > Access granted to mainframe
+                        > You're in the system now...`;
+                                    },
+            
+            matrix: () => {
+                document.body.classList.toggle('glitch');
+                return 'Matrix mode toggled. Reality is now optional.';
+            },
+            
+            clear: () => {
+                document.getElementById('terminalOutput').innerHTML = '';
+                return '';
+            },
+            
+            whoami: () => 'digital_explorer',
+            
+            date: () => new Date().toString(),
+            
+            uptime: () => `System has been running for ${Math.floor(Math.random() * 100)} days`,
+            
+            secrets: () => {
+                easterEggCount++;
+                if (easterEggCount >= 3) {
+                    return `CLASSIFIED FILES ACCESSED:
+                            • project_x.enc - [REDACTED]
+                            • neural_link.sys - Connection established
+                            • reality.dll - File corrupted
+                            • easter_egg.exe - You found me!
+
+                            Congratulations, digital explorer. You've unlocked the hidden layer.`;
+                }
+                return 'Access denied. Insufficient clearance level.';
+            }
+        };
+        
+        document.getElementById('terminalInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const input = e.target.value.trim();
+                const output = document.getElementById('terminalOutput');
+                
+                // Add command to output
+                output.innerHTML += `<div><span class="prompt">user@WHEELS-01:~$ </span>${input}</div>`;
+                
+                // Process command
+                const [command, ...args] = input.split(' ');
+                let result = '';
+                
+                if (terminalCommands[command]) {
+                    result = terminalCommands[command](args);
+                } else if (input === '') {
+                    result = '';
+                } else {
+                    result = `Command not found: ${command}. Type 'help' for available commands.`;
+                }
+                
+                if (result) {
+                    output.innerHTML += `<div style="margin-bottom: 10px;">${result}</div>`;
+                }
+                
+                // Clear input
+                e.target.value = '';
+                
+                // Scroll to bottom
+                output.scrollTop = output.scrollHeight;
+                
+                // Add to history
+                if (input) {
+                    terminalHistory.push(input);
+                    historyIndex = terminalHistory.length;
+                }
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (historyIndex > 0) {
+                    historyIndex--;
+                    e.target.value = terminalHistory[historyIndex];
+                }
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (historyIndex < terminalHistory.length - 1) {
+                    historyIndex++;
+                    e.target.value = terminalHistory[historyIndex];
+                } else {
+                    historyIndex = terminalHistory.length;
+                    e.target.value = '';
+                }
+            }
+        });
+        
+        // System corruption effect
+        function corruptSystem() {
+            const desktop = document.getElementById('desktop');
+            desktop.classList.add('glitch');
+            
+            const icons = document.querySelectorAll('.desktop-icon');
+            icons.forEach(icon => {
+                icon.style.filter = 'hue-rotate(' + Math.random() * 360 + 'deg)';
+                icon.style.transform = 'rotate(' + (Math.random() * 10 - 5) + 'deg)';
+            });
+            
+            // Corrupt some text
+            setTimeout(() => {
+                const textElements = document.querySelectorAll('.window-title, .desktop-icon');
+                textElements.forEach(el => {
+                    if (Math.random() > 0.7) {
+                        el.textContent = el.textContent.split('').map(char => 
+                            Math.random() > 0.8 ? String.fromCharCode(Math.random() * 94 + 33) : char
+                        ).join('');
+                    }
+                });
+            }, 1000);
+            
+            // Restore after corruption
+            setTimeout(() => {
+                location.reload();
+            }, 5000);
+        }
+        
+        // Start menu (placeholder)
+        function showStartMenu() {
+            alert('Start menu coming soon... maybe. . .');
+        }
+        
+        // Random system messages
+        setInterval(() => {
+            if (Math.random() > 0.98 && bootComplete) {
+                const messages = [
+                    'System scan complete. No threats detected.',
+                    'Neural link stable.',
+                    'Quantum fluctuation detected in sector 7.',
+                    'Background process completed successfully.',
+                    'Memory optimization in progress...'
+                ];
+                
+                console.log('WHEELS-01: ' + messages[Math.floor(Math.random() * messages.length)]);
+            }
+        }, 10000);
+    </script>
+</body>
+</html>
