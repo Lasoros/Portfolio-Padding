@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thomas Wimer - Full Stack Developer</title>
 
-    <link rel="stylesheet" href="port1.css">
+    <link rel="stylesheet" href="style.css">
 
-    <link rel="shortcut icon" href="https://srv1778-files.hstgr.io/1669dfbaaeaee940/files/public_html/images/portfav.png" type="image/x-icon">
+    <link rel="shortcut icon" href="portfav.png" type="image/png">
 
 </head>
 <body>
@@ -31,7 +31,7 @@
             <div class="hero-content slide-in-left">
                 <h1>Thomas Wimer</h1>
                 <div class="subtitle">Full Stack Developer</div>
-                <p>I build exceptional digital experiences that combine cutting-edge technology with intuitive design. Passionate about creating scalable solutions that make a difference.</p>
+                <p>Driven by a lifelong passion for tech, I create impactful digital experiences that fuse innovative design with powerful, scalable solutions. Whether building systems or writing code, I bring ideas to life through problem-solving and precision.</p>
                 <div class="cta-buttons">
                     <a href="#projects" class="btn btn-primary">View My Work</a>
                     <a href="#contact" class="btn btn-secondary">Get In Touch</a>
@@ -115,10 +115,6 @@
                             <div>Python</div>
                         </div>
                         <div class="skill-card">
-                            <span class="skill-icon">🍃</span>
-                            <div>MongoDB</div>
-                        </div>
-                        <div class="skill-card">
                             <span class="skill-icon">🔷</span>
                             <div>TypeScript</div>
                         </div>
@@ -133,6 +129,10 @@
                         <div class="skill-card">
                             <span class="skill-icon">🐋</span>
                             <div>Docker</div>
+                        </div>
+                        <div class="skill-card">
+                            <span class="skill-icon"></span>
+                            <div>HTML/CSS</div>
                         </div>
                     </div>
                 </div>
@@ -160,6 +160,25 @@
                         <div class="project-links">
                             <a href="https://interview-prep.thomaswimer.com/" target="_blank" class="project-link">Live Demo →</a>
                             <a href="https://github.com/Lasoros/Web-Dev-Prep" target="_blank" class="project-link">GitHub →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card fade-in">
+                    <div class="project-image">🐇</div>
+                    <div class="project-content">
+                        <h3 class="project-title">WHEELS.v=?</h3>
+                        <p class="project-description">
+                            Dev's click here! hiring manager beware, this project is more aimed at fellow Dev's. . . 
+                        </p>
+                        <div class="project-tech">
+                            <span class="tech-tag">JavaScript</span>
+                            <span class="tech-tag">HTML</span>
+                            <span class="tech-tag">CSS</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="https://devs.thomaswimer.com/" target="_blank" class="project-link">Live Demo →</a>
+                            <a href="https://github.com/Lasoros/Portfolio-Padding/blob/main/PortfolioDrafts/port4-1.html" target="_blank" class="project-link">GitHub →</a>
                         </div>
                     </div>
                 </div>
@@ -260,11 +279,16 @@
                         <h3>GitHub</h3>
                         <p>View my code</p>
                     </a>
-                    <a class="contact-card" onclick="downloadResume()">
+                    <a href="https://thomaswimer.com/Thomas.Wimer.IT.pdf" target="_blank" class="contact-card">
                         <div class="contact-icon">📄</div>
                         <h3>Resume</h3>
                         <p>Take a peak!</p>
-                    </a> 
+                    </a>                    
+                    <!-- <a onclick="downloadResume()" class="contact-card" >
+                        <div class="contact-icon">📄</div>
+                        <h3>Resume</h3>
+                        <p>Take a peak!</p>
+                    </a>  -->
                     <!-- put wheels-01 link here? Maybe -->
                 </div>
             </div>
@@ -279,10 +303,9 @@
 
     <script>
 
-        function downloadResume() {
-            window.open('Thomas.Wimer.IT.pdf', '_blank');
-        }
-        // Smooth scrolling
+        // function downloadResume() {
+        //     window.open('Thomas.Wimer.IT.pdf', '_blank');
+        // }
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -294,7 +317,6 @@
             });
         });
 
-        // Intersection Observer for animations
         const observerOptions = {
             threshold: 0.1,
             rootMargin: '0px 0px -50px 0px'
@@ -308,12 +330,10 @@
             });
         }, observerOptions);
 
-        // Observe all animated elements
         document.querySelectorAll('.fade-in, .slide-in-left, .slide-in-right').forEach(el => {
             observer.observe(el);
         });
 
-        // Navbar scroll effect
         let lastScrollY = window.scrollY;
         window.addEventListener('scroll', () => {
             const navbar = document.querySelector('.navbar');
@@ -324,7 +344,6 @@
             }
         });
 
-        // Typewriter effect for subtitle
         const subtitle = document.querySelector('.subtitle');
         const texts = ['Full Stack Developer', 'Problem Solver', 'Creative Thinker', 'Code Enthusiast'];
         let textIndex = 0;
@@ -356,10 +375,8 @@
             setTimeout(typeWriter, typeSpeed);
         }
 
-        // Start typewriter effect after page load
         setTimeout(typeWriter, 1000);
 
-        // Add hover effects to cards
         document.querySelectorAll('.project-card, .skill-card, .stat-card').forEach(card => {
             card.addEventListener('mouseenter', function() {
                 this.style.transform = 'translateY(-10px) scale(1.02)';
@@ -370,7 +387,6 @@
             });
         });
 
-        // Parallax effect for background
         window.addEventListener('scroll', () => {
             const scrolled = window.pageYOffset;
             const bgAnimation = document.querySelector('.bg-animation');

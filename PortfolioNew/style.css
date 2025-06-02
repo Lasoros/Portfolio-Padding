@@ -25,7 +25,6 @@ body {
   overflow-x: hidden;
 }
 
-/* Animated background */
 .bg-animation {
   position: fixed;
   top: 0;
@@ -61,7 +60,6 @@ body {
   }
 }
 
-/* Navigation */
 .navbar {
   position: fixed;
   top: 0;
@@ -125,7 +123,6 @@ body {
   width: 100%;
 }
 
-/* Hero Section */
 .hero {
   min-height: 100vh;
   display: flex;
@@ -208,7 +205,6 @@ body {
   background: rgba(99, 102, 241, 0.1);
 }
 
-/* Code visualization */
 .code-visual {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -271,7 +267,6 @@ body {
   color: var(--text-secondary);
 }
 
-/* Sections */
 .section {
   padding: 5rem 2rem;
 }
@@ -359,7 +354,6 @@ body {
   display: block;
 }
 
-/* Projects Section */
 .projects-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
@@ -446,7 +440,6 @@ body {
   transform: translateX(5px);
 }
 
-/* Contact Section */
 .contact {
   background: var(--bg-card);
   border-radius: 20px;
@@ -483,7 +476,6 @@ body {
   color: var(--primary);
 }
 
-/* Footer */
 .footer {
   text-align: center;
   padding: 2rem;
@@ -491,7 +483,6 @@ body {
   border-top: 1px solid var(--border);
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .nav-menu {
     display: none;
@@ -521,7 +512,6 @@ body {
   }
 }
 
-/* Animations */
 .fade-in {
   opacity: 0;
   transform: translateY(30px);
